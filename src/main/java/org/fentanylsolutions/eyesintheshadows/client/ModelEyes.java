@@ -132,7 +132,7 @@ public class ModelEyes extends ModelBase {
         }
 
         float aggroColorAdjust = 1;
-        if (Config.eyeAggressionDependsOnLightLevel) {
+        if (Config.changeColorWithAggro) {
             aggroColorAdjust = 1 - MathHelper.clamp_float(parEntity.getAggroLevel(), 0, 1);
         }
 
