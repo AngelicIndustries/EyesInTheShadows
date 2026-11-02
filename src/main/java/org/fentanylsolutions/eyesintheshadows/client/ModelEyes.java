@@ -206,7 +206,10 @@ public class ModelEyes extends ModelBase {
 
         Minecraft.getMinecraft()
             .getTextureManager()
-            .bindTexture(EyesInTheShadows.varInstanceClient.eyesTexture);
+            .bindTexture(
+                Util.isDimensionListed(parEntity.worldObj, Config.whiteEyeDimensions)
+                    ? WhitenedTexture.of(EyesInTheShadows.varInstanceClient.eyesTexture)
+                    : EyesInTheShadows.varInstanceClient.eyesTexture);
 
         final float w = 0.25f;
         final float h = w * 5 / 13f;

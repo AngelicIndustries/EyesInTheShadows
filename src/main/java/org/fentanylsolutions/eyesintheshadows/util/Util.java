@@ -150,6 +150,35 @@ public class Util {
         return Math.max(blockLight, DynamicLightApproximation.getBrightness(world, x, y, z));
     }
 
+    /** Whether this dimension's name is in a list of dimension names. */
+    public static boolean isDimensionListed(World world, String[] names) {
+        String dimensionName = world.provider != null ? world.provider.getDimensionName() : "";
+        for (String name : names) {
+            if (name.trim()
+                .equals(dimensionName)) return true;
+        }
+        return false;
+    }
+
+    /** This dimension's value in a list of name=value entries, or the fallback when it isn't listed. */
+    public static float getDimensionValue(World world, String[] entries, float fallback) {
+        String dimensionName = world.provider != null ? world.provider.getDimensionName() : "";
+        for (String entry : entries) {
+            int split = entry.indexOf('=');
+            if (split <= 0 || !entry.substring(0, split)
+                .trim()
+                .equals(dimensionName)) continue;
+            try {
+                return Float.parseFloat(
+                    entry.substring(split + 1)
+                        .trim());
+            } catch (NumberFormatException e) {
+                return fallback;
+            }
+        }
+        return fallback;
+    }
+
     /* Calculating how transparent the eyes should be, from 0 to 1 */
     public static float getEyeRenderingAlpha(Entity entity, boolean ignoreArtificialLight) {
         float mixAlpha;

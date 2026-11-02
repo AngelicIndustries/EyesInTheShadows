@@ -75,12 +75,14 @@ public class Config {
 
         /* misc */
         public static final float aggroEscalationPerTick = 1f / (20 * 60 * 5);
+        public static final String[] dimensionAggroMultipliers = { "Limbo=60" };
         public static final int blinkDuration = 5;
         public static final float blinkChance = 0.02F;
         public static final int health = 1;
         public static final float scaleFactor = 1F;
         public static final float eyeGlowStrength = 2F;
         public static final int eyeGlowPasses = 1;
+        public static final String[] whiteEyeDimensions = { "Limbo" };
         public static final boolean enableDynamicLightApproximation = true;
         public static final float eyeArtificialLightSensitivityOpenSky = 1.25F;
         public static final float eyeArtificialLightSensitivityCovered = 1.45F;
@@ -150,6 +152,7 @@ public class Config {
     public static double speedNoAggro = Defaults.speedNoAggro;
     public static double speedFullAggro = Defaults.speedFullAggro;
     public static float aggroEscalationPerTick = Defaults.aggroEscalationPerTick;
+    public static String[] dimensionAggroMultipliers = Defaults.dimensionAggroMultipliers;
     public static int tickBetweenAttacks = Defaults.tickBetweenAttacks;
     public static float watchDistance = Defaults.watchDistance;
     public static double eyeBaseAttackDamage = Defaults.eyeBaseAttackDamage;
@@ -190,6 +193,7 @@ public class Config {
     public static float scaleFactor = Defaults.scaleFactor;
     public static float eyeGlowStrength = Defaults.eyeGlowStrength;
     public static int eyeGlowPasses = Defaults.eyeGlowPasses;
+    public static String[] whiteEyeDimensions = Defaults.whiteEyeDimensions;
     public static boolean enableDynamicLightApproximation = Defaults.enableDynamicLightApproximation;
     public static float eyeArtificialLightSensitivityOpenSky = Defaults.eyeArtificialLightSensitivityOpenSky;
     public static float eyeArtificialLightSensitivityCovered = Defaults.eyeArtificialLightSensitivityCovered;
@@ -249,6 +253,13 @@ public class Config {
                 1,
                 4);
             eyeGlowPasses = eyeGlowPassesProperty.getInt();
+
+            Property whiteEyeDimensionsProperty = config.get(
+                Categories.visual,
+                "white_eye_dimensions",
+                Defaults.whiteEyeDimensions,
+                "Dimensions where the eyes are white instead of yellow. They still turn red as they grow aggressive. Dimensional Doors' Limbo has them.");
+            whiteEyeDimensions = whiteEyeDimensionsProperty.getStringList();
 
             /* Sound */
             Property eyeIdleVolumeProperty = config.get(
@@ -476,6 +487,13 @@ public class Config {
             0,
             Float.MAX_VALUE);
         aggroEscalationPerTick = (float) aggroEscalationPerTickProperty.getDouble();
+
+        Property dimensionAggroMultipliersProperty = config.get(
+            Categories.eye_aggression,
+            "dimensionAggroMultipliers",
+            Defaults.dimensionAggroMultipliers,
+            "Dimensions where the eyes grow aggressive faster, as name=multiplier on aggroEscalationPerTick. In Dimensional Doors' Limbo they turn red within seconds.");
+        dimensionAggroMultipliers = dimensionAggroMultipliersProperty.getStringList();
 
         Property tickBetweenAttacksProperty = config.get(
             Categories.eye_aggression,

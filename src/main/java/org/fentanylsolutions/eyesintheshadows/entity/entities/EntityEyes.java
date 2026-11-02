@@ -302,9 +302,11 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
         if (!worldObj.isRemote && Config.enableEyeAggressionEscalation && alpha > 0) {
             if (!isPlayerLookingInMyGeneralDirection() && this.getAttackTarget() != null) {
-                setAggroLevel(getAggroLevel() + Config.aggroEscalationPerTick);
+                float escalation = Config.aggroEscalationPerTick
+                    * Math.max(0, Util.getDimensionValue(worldObj, Config.dimensionAggroMultipliers, 1));
+                setAggroLevel(getAggroLevel() + escalation);
                 if (Config.eyeAggressionDependsOnLightLevel) {
-                    setAggroLevel(getAggroLevel() + Config.aggroEscalationPerTick * alpha);
+                    setAggroLevel(getAggroLevel() + escalation * alpha);
                 }
             } else {
                 setAggroLevel(getAggroLevel() - Config.aggroEscalationPerTick * 2);
