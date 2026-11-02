@@ -82,10 +82,15 @@ public class EyesSpawningManager {
             int daysUntilNextHalloween = TimeUtil.getDaysUntilNextHalloween();
             int minutesToMidnight = TimeUtil.getMinutesToMidnight();
 
-            state.cooldown = calculateSpawnCycleInterval(daysUntilNextHalloween, minutesToMidnight);
+            float multiplier = dimensionMultiplier(world);
+            state.cooldown = multiplier > 0 ? Math
+                .max(1, Math.round(calculateSpawnCycleInterval(daysUntilNextHalloween, minutesToMidnight) / multiplier))
+                : calculateSpawnCycleInterval(daysUntilNextHalloween, minutesToMidnight);
 
-            int maxTotalEyesPerDimension = calculateMaxTotalEyesPerDimension(daysUntilNextHalloween, minutesToMidnight);
-            int maxEyesAroundPlayer = calculateMaxEyesAroundPlayer(daysUntilNextHalloween, minutesToMidnight);
+            int maxTotalEyesPerDimension = Math
+                .round(calculateMaxTotalEyesPerDimension(daysUntilNextHalloween, minutesToMidnight) * multiplier);
+            int maxEyesAroundPlayer = Math
+                .round(calculateMaxEyesAroundPlayer(daysUntilNextHalloween, minutesToMidnight) * multiplier);
 
             int count = world.countEntities(EntityEyes.class);
             if (count >= maxTotalEyesPerDimension) {
@@ -138,6 +143,30 @@ public class EyesSpawningManager {
     private static boolean isDimensionAllowed(World world) {
         String dimensionName = world.provider != null ? world.provider.getDimensionName() : "";
         return isNameAllowed(dimensionName, Config.dimensionSpawnNames, Config.dimensionListIsWhitelist);
+    }
+
+    /**
+     * How many more eyes this dimension has, and how much faster they come, from dimensionEyeMultipliers
+     * (name=multiplier); 1 when not listed.
+     */
+    private static float dimensionMultiplier(World world) {
+        String dimensionName = world.provider != null ? world.provider.getDimensionName() : "";
+        for (String entry : Config.dimensionEyeMultipliers) {
+            int split = entry.indexOf('=');
+            if (split <= 0 || !entry.substring(0, split)
+                .trim()
+                .equals(dimensionName)) continue;
+            try {
+                return Math.max(
+                    0,
+                    Float.parseFloat(
+                        entry.substring(split + 1)
+                            .trim()));
+            } catch (NumberFormatException e) {
+                return 1;
+            }
+        }
+        return 1;
     }
 
     private static boolean isBiomeAllowed(World world, int x, int z) {

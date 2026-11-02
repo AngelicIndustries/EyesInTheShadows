@@ -55,6 +55,7 @@ public class Config {
         public static final String[] biomeSpawnNames = new String[0];
         public static final boolean biomeListIsWhitelist = false;
         public static final String[] dimensionSpawnNames = new String[0];
+        public static final String[] dimensionEyeMultipliers = { "Limbo=10" };
         public static final boolean dimensionListIsWhitelist = false;
 
         public static final int spawnCycleIntervalNormal = 150;
@@ -162,6 +163,7 @@ public class Config {
     public static String[] biomeSpawnNames = Defaults.biomeSpawnNames;
     public static boolean biomeListIsWhitelist = Defaults.biomeListIsWhitelist;
     public static String[] dimensionSpawnNames = Defaults.dimensionSpawnNames;
+    public static String[] dimensionEyeMultipliers = Defaults.dimensionEyeMultipliers;
     public static boolean dimensionListIsWhitelist = Defaults.dimensionListIsWhitelist;
     public static int spawnCycleIntervalNormal = Defaults.spawnCycleIntervalNormal;
     public static int maxEyesAroundPlayerNormal = Defaults.maxEyesAroundPlayerNormal;
@@ -540,6 +542,13 @@ public class Config {
         Property dimensionSpawnNamesProperty = config
             .get(Categories.spawning, "dimensionSpawnNames", Defaults.dimensionSpawnNames, "List of dimensions.");
         dimensionSpawnNames = dimensionSpawnNamesProperty.getStringList();
+
+        Property dimensionEyeMultipliersProperty = config.get(
+            Categories.spawning,
+            "dimensionEyeMultipliers",
+            Defaults.dimensionEyeMultipliers,
+            "Dimensions with more (or fewer) eyes, as name=multiplier: it multiplies how often eyes spawn there and how many there are around each player and in the whole dimension. Dimensional Doors' Limbo has ten times as many.");
+        dimensionEyeMultipliers = dimensionEyeMultipliersProperty.getStringList();
 
         Property dimensionListIsWhitelistProperty = config.get(
             Categories.spawning,
