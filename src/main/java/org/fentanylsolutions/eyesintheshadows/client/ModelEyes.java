@@ -193,10 +193,11 @@ public class ModelEyes extends ModelBase {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDepthMask(false);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        int fullBright = 61680;
-        int fullBrightX = fullBright % 65536;
-        int fullBrightY = fullBright / 65536;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, fullBrightX, fullBrightY);
+        /*
+         * Full block and sky light. Vanilla's spider eyes use 61680 here, which only reaches full light through texture
+         * clamping and turns pitch black where lightmap coordinates are packed into 16 bits (Angelica)
+         */
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
         GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha);
 
         // Minecraft.getMinecraft().entityRenderer. // something with fog color
