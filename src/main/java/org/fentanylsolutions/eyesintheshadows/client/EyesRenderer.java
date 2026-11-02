@@ -13,6 +13,19 @@ public class EyesRenderer extends RenderLiving {
     public EyesRenderer(ModelBase par1ModelBase, float parShadowSize) {
         super(par1ModelBase, parShadowSize);
         this.shadowSize = 0;
+        // The eyes are all glow, drawn in the first render pass as vanilla draws spider eyes (see EyesRendererAngelica)
+        setRenderPassModel(par1ModelBase);
+    }
+
+    @Override
+    protected void renderModel(EntityLivingBase entity, float limbSwing, float limbSwingAmount, float ageInTicks,
+        float headYaw, float headPitch, float scale) {
+        // Nothing but the glow, which the render pass draws
+    }
+
+    @Override
+    protected int shouldRenderPass(EntityLivingBase entity, int pass, float partialTicks) {
+        return pass == 0 ? 1 : -1;
     }
 
     @Override

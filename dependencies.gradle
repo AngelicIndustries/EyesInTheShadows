@@ -53,6 +53,8 @@ dependencies {
     runtimeOnlyNonPublishable(rfg.deobf("curse.maven:skinport-234948:3212017"))
 
     // api("maven.modrinth:carbon-config:ttXTOUmO")
+    // Angelica's eye pass API (EyesRendererAngelica), used only when the installed Angelica has it
+    compileOnly("com.github.GTNewHorizons:Angelica:2.2.37:dev") { transitive = false }
     compileOnly('com.github.GTNewHorizons:Baubles-Expanded:2.2.22-GTNH:dev')
     compileOnlyApi('thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev') {transitive=false}
     compileOnly('com.github.GTNewHorizons:ForbiddenMagic:0.9.17-GTNH:dev') {exclude module: "Baubles" }

@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.fentanylsolutions.eyesintheshadows.client.EyesRenderer;
+import org.fentanylsolutions.eyesintheshadows.client.EyesRendererAngelica;
 import org.fentanylsolutions.eyesintheshadows.client.ModelEyes;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 import org.fentanylsolutions.eyesintheshadows.event.ClientEventHandler;
@@ -31,7 +32,10 @@ public class ClientProxy extends CommonProxy {
         EyesInTheShadows.varInstanceClient = new VarInstanceClient();
         EyesInTheShadows.varInstanceClient.preInitHook();
 
-        RenderingRegistry.registerEntityRenderingHandler(EntityEyes.class, new EyesRenderer(new ModelEyes(), 0.5F));
+        RenderingRegistry.registerEntityRenderingHandler(
+            EntityEyes.class,
+            hasAngelicaEyePass() ? EyesRendererAngelica.create(new ModelEyes(), 0.5F)
+                : new EyesRenderer(new ModelEyes(), 0.5F));
 
         ClientEventHandler clientEventHandler = new ClientEventHandler();
         MinecraftForge.EVENT_BUS.register(clientEventHandler);
@@ -81,5 +85,15 @@ public class ClientProxy extends CommonProxy {
 
         // Solution is to double-check side before returning the player:
         return (ctx.side.isClient() ? Minecraft.getMinecraft().thePlayer : super.getPlayerEntityFromContext(ctx));
+    }
+
+    /** Whether Angelica is there with its eye pass API (EyePassRenderer, newer than 2.1). */
+    private static boolean hasAngelicaEyePass() {
+        try {
+            Class.forName("com.gtnewhorizons.angelica.api.EyePassRenderer", false, ClientProxy.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }
