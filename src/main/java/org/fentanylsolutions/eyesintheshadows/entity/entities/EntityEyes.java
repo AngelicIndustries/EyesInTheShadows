@@ -371,17 +371,6 @@ public class EntityEyes extends EntityFlying implements IModEntity {
             return false;
         }
 
-        /*
-         * if (this.attackTime == 0) {
-         * this.attackTime = Config.tickBetweenAttacks;
-         * super.attackEntityAsMob(attackedEntity);
-         * // jabelar says this is correct :shrug:
-         * this.setLastAttacker(attackedEntity);
-         * }
-         * // stub return
-         * return false;
-         */
-
         float f = (float) this.getEntityAttribute(SharedMonsterAttributes.attackDamage)
             .getAttributeValue();
         int i = 0;
@@ -540,10 +529,6 @@ public class EntityEyes extends EntityFlying implements IModEntity {
         return Config.idleSoundInterval;
     }
 
-    protected float getSoundVolume() {
-        return Config.eyeIdleVolume;
-    }
-
     @Override
     protected void collideWithEntity(Entity entityIn) {
         if (!(entityIn instanceof EntityPlayer) || ((EntityPlayer) entityIn).capabilities.isCreativeMode) {
@@ -571,7 +556,8 @@ public class EntityEyes extends EntityFlying implements IModEntity {
         this.setHealth(1);
         damageEntity(DamageSource.outOfWorld, 1);
         if (playDeathSound) {
-            this.playSound(getDeathSound(), Config.eyeDisappearVolume, this.getSoundPitch());
+            // Each client scales it by its own eyeDisappearVolume (SoundingEyes)
+            this.playSound(getDeathSound(), 1.0F, this.getSoundPitch());
         }
     }
 

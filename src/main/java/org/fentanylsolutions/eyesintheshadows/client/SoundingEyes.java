@@ -8,9 +8,11 @@ import java.util.WeakHashMap;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraftforge.client.event.sound.PlaySoundEvent17;
 
+import org.fentanylsolutions.eyesintheshadows.Config;
 import org.fentanylsolutions.eyesintheshadows.EyesInTheShadows;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 
@@ -21,7 +23,8 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 /**
  * The sounds the eyes are making right now, so glitched eyes glitch only while they whisper, giggle or go, and an
  * eye's whispers and giggles stop when it dies (only its death sound plays on). The server plays an eye's sounds where
- * the eye is; each one the client starts is matched to the eye nearest to it.
+ * the eye is, at full volume; each one the client starts is scaled by this player's volume settings and matched to the
+ * eye nearest to it.
  */
 public final class SoundingEyes {
 
@@ -50,6 +53,7 @@ public final class SoundingEyes {
                     .getResourceDomain())) {
             return;
         }
+        sound = event.result = scaled(sound);
         EntityEyes nearest = null;
         double best = REACH * REACH;
         for (Object entity : mc.theWorld.loadedEntityList) {
@@ -90,6 +94,24 @@ public final class SoundingEyes {
             if (eyes.isDead && entry.getValue()
                 .isEmpty()) it.remove();
         }
+    }
+
+    /** The sound at this player's volume for its kind: vanishing or idle. The jumpscare sets its own. */
+    private static ISound scaled(ISound sound) {
+        String path = sound.getPositionedSoundLocation()
+            .getResourcePath();
+        float volume;
+        if (path.endsWith(".disappear")) volume = Config.eyeDisappearVolume;
+        else if (path.endsWith(".laugh") || path.endsWith(".whisper")) volume = Config.eyeIdleVolume;
+        else return sound;
+        if (volume == 1.0F) return sound;
+        return new PositionedSoundRecord(
+            sound.getPositionedSoundLocation(),
+            sound.getVolume() * volume,
+            sound.getPitch(),
+            sound.getXPosF(),
+            sound.getYPosF(),
+            sound.getZPosF());
     }
 
     private static boolean isDeathSound(ISound sound) {

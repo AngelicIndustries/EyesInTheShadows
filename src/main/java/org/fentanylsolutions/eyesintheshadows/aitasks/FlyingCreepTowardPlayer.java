@@ -23,7 +23,6 @@ public class FlyingCreepTowardPlayer extends EntityAIBase {
     private double waypointX;
     private double waypointY;
     private double waypointZ;
-    private int attackTick;
     private double attackRangeSq;
     private int swerving = 0;
     private int lastDir = -1;
@@ -259,11 +258,7 @@ public class FlyingCreepTowardPlayer extends EntityAIBase {
         double distanceToTargetSq = this.eyes
             .getDistanceSq(target.posX, target.boundingBox.minY + target.getEyeHeight(), target.posZ);
 
-        this.attackTick = Math.max(this.attackTick - 1, 0);
-
-        if (distanceToTargetSq <= this.attackRangeSq && this.attackTick <= 0
-            && isBehindTarget(getTargetHorizontalLook())) {
-            this.attackTick = Config.tickBetweenAttacks;
+        if (distanceToTargetSq <= this.attackRangeSq && isBehindTarget(getTargetHorizontalLook())) {
             this.eyes.attackEntityAsMob(target);
         }
     }

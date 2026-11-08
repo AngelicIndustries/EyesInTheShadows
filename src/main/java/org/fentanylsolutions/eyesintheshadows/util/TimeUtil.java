@@ -67,6 +67,6 @@ public class TimeUtil {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
         if (hour > 12) hour -= 24;
-        return Math.abs(hour * 24 + minute);
+        return Math.abs(hour * 60 + minute);
     }
 }

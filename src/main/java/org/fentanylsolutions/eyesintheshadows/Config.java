@@ -96,7 +96,6 @@ public class Config {
         public static final boolean enableDynamicLightApproximation = true;
         public static final float eyeArtificialLightSensitivityOpenSky = 1.25F;
         public static final float eyeArtificialLightSensitivityCovered = 1.45F;
-        public static final int tickBetweenAttacks = 40;
         public static final boolean eyesAttackTamedWolves = false;
         public static final boolean wolvesAttackEyes = true;
         public static final boolean mobsAttackDormantEyes = false;
@@ -165,7 +164,6 @@ public class Config {
     public static double speedFullAggro = Defaults.speedFullAggro;
     public static float aggroEscalationPerTick = Defaults.aggroEscalationPerTick;
     public static String[] dimensionAggroMultipliers = Defaults.dimensionAggroMultipliers;
-    public static int tickBetweenAttacks = Defaults.tickBetweenAttacks;
     public static float watchDistance = Defaults.watchDistance;
     public static double eyeBaseAttackDamage = Defaults.eyeBaseAttackDamage;
     public static boolean fly = true;
@@ -307,7 +305,7 @@ public class Config {
                 Categories.sound_volumes,
                 "eyeIdleVolume",
                 Defaults.eyeIdleVolume,
-                "Eye idle sound volume.",
+                "Eye idle sound volume, as each player sets it.",
                 0,
                 Float.MAX_VALUE);
             eyeIdleVolume = (float) eyeIdleVolumeProperty.getDouble();
@@ -316,7 +314,7 @@ public class Config {
                 Categories.sound_volumes,
                 "eyeDisappearVolume",
                 Defaults.eyeDisappearVolume,
-                "Eye disappearing sound volume.",
+                "Eye disappearing sound volume, as each player sets it.",
                 0,
                 Float.MAX_VALUE);
             eyeDisappearVolume = (float) eyeDisappearVolumeProperty.getDouble();
@@ -552,14 +550,9 @@ public class Config {
             "Dimensions where the eyes grow aggressive faster, as name=multiplier on aggroEscalationPerTick. In Dimensional Doors' Limbo they turn red within seconds.");
         dimensionAggroMultipliers = dimensionAggroMultipliersProperty.getStringList();
 
-        Property tickBetweenAttacksProperty = config.get(
-            Categories.eye_aggression,
-            "tickBetweenAttacks",
-            Defaults.tickBetweenAttacks,
-            "Ticks between eye attacks.",
-            1,
-            Integer.MAX_VALUE);
-        tickBetweenAttacks = tickBetweenAttacksProperty.getInt();
+        // Gone: an eye vanishes after attacking, so there was never a next attack to wait for
+        config.getCategory(Categories.eye_aggression)
+            .remove("tickBetweenAttacks");
 
         Property watchDistanceProperty = config.get(
             Categories.eye_aggression,

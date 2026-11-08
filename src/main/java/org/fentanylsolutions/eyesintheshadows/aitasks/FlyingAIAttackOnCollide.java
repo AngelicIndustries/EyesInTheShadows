@@ -4,14 +4,11 @@ import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 
-import org.fentanylsolutions.eyesintheshadows.Config;
-
 public class FlyingAIAttackOnCollide extends EntityAIBase {
 
     private final EntityFlying attacker;
     private EntityLivingBase target;
     /** An amount of decrementing ticks that allows the entity to attack once the tick reaches 0. */
-    private int attackTick;
     /** The speed with which the mob will approach the target */
     private double speedTowardsTarget;
     /** When true, the mob will continue chasing its target, even if it can't find a path to them right now. */
@@ -162,12 +159,8 @@ public class FlyingAIAttackOnCollide extends EntityAIBase {
 
         double attackRange = (this.attacker.width * 2.0F * this.attacker.width * 2.0F + target.width) * 2;
 
-        this.attackTick = Math.max(this.attackTick - 1, 0);
-
         // If close enough to attack
-        if (distanceToTargetSq <= attackRange && this.attackTick <= 0) {
-            this.attackTick = Config.tickBetweenAttacks;
-
+        if (distanceToTargetSq <= attackRange) {
             this.attacker.attackEntityAsMob(target);
         }
     }
