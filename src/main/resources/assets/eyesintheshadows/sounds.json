@@ -19,7 +19,58 @@
   "mob.eyes.jumpscare": {
     "category": "neutral",
     "sounds": [
-      "screech2"
+      {"name": "screech2", "volume": 0.25}
+    ]
+  },
+
+  "mob.eyes.glitched.laugh": {
+    "category": "neutral",
+    "sounds": [
+      "glitched/laugh1",
+      "glitched/laugh2",
+      "glitched/laugh3",
+      "glitched/laugh4",
+      {"name": "glitched/giggle1", "pitch": 1.22},
+      {"name": "glitched/giggle2", "pitch": 1.67},
+      {"name": "glitched/giggle3", "pitch": 1.18},
+      {"name": "glitched/giggle4", "pitch": 1.25},
+      {"name": "glitched/giggle5", "pitch": 1.88}
+    ]
+  },
+
+  "mob.eyes.glitched.whisper": {
+    "category": "neutral",
+    "sounds": [
+      {"name": "glitched/whisper1", "pitch": 1.8},
+      {"name": "glitched/whisper2", "pitch": 1.3}
+    ]
+  },
+
+  "mob.eyes.glitched.disappear": {
+    "category": "neutral",
+    "sounds": [
+      "glitched/disappear",
+      "glitched/disappear_breath_og",
+      "glitched/disappear_breath_s8270",
+      "glitched/disappear_breath_s9527",
+      {"name": "glitched/disappear_sigh_og", "pitch": 2},
+      {"name": "glitched/disappear_sigh_s4439", "pitch": 2},
+      {"name": "glitched/disappear_sigh_s1075", "pitch": 2},
+      {"name": "glitched/disappear_kidsigh_og", "pitch": 1.9},
+      {"name": "glitched/disappear_kidsigh_s7089", "pitch": 1.9},
+      {"name": "glitched/disappear_kidsigh_s6081", "pitch": 1.9},
+      {"name": "glitched/disappear_gasp_og", "pitch": 1.4},
+      {"name": "glitched/disappear_gasp_s9543", "pitch": 1.4},
+      {"name": "glitched/disappear_gasp_s4435", "pitch": 1.4}
+    ]
+  },
+
+  "mob.eyes.glitched.jumpscare": {
+    "category": "neutral",
+    "sounds": [
+      "glitched/jumpscare1",
+      {"name": "glitched/jumpscare2", "pitch": 1.19},
+      "glitched/jumpscare3"
     ]
   }
 }

@@ -83,6 +83,7 @@ public class Config {
         public static final float eyeGlowStrength = 2F;
         public static final int eyeGlowPasses = 1;
         public static final String[] whiteEyeDimensions = { "Limbo" };
+        public static final String[] glitchedSoundDimensions = { "Limbo" };
         public static final boolean enableDynamicLightApproximation = true;
         public static final float eyeArtificialLightSensitivityOpenSky = 1.25F;
         public static final float eyeArtificialLightSensitivityCovered = 1.45F;
@@ -194,6 +195,7 @@ public class Config {
     public static float eyeGlowStrength = Defaults.eyeGlowStrength;
     public static int eyeGlowPasses = Defaults.eyeGlowPasses;
     public static String[] whiteEyeDimensions = Defaults.whiteEyeDimensions;
+    public static String[] glitchedSoundDimensions = Defaults.glitchedSoundDimensions;
     public static boolean enableDynamicLightApproximation = Defaults.enableDynamicLightApproximation;
     public static float eyeArtificialLightSensitivityOpenSky = Defaults.eyeArtificialLightSensitivityOpenSky;
     public static float eyeArtificialLightSensitivityCovered = Defaults.eyeArtificialLightSensitivityCovered;
@@ -567,6 +569,13 @@ public class Config {
             Defaults.dimensionEyeMultipliers,
             "Dimensions with more (or fewer) eyes, as name=multiplier: it multiplies how often eyes spawn there and how many there are around each player and in the whole dimension. Dimensional Doors' Limbo has ten times as many.");
         dimensionEyeMultipliers = dimensionEyeMultipliersProperty.getStringList();
+
+        Property glitchedSoundDimensionsProperty = config.get(
+            Categories.sound_volumes,
+            "glitchedSoundDimensions",
+            Defaults.glitchedSoundDimensions,
+            "Dimensions where the eyes sound glitched: they mostly whisper, giggle now and then, and have their own disappearing and jumpscare sounds. Dimensional Doors' Limbo has them.");
+        glitchedSoundDimensions = glitchedSoundDimensionsProperty.getStringList();
 
         Property dimensionListIsWhitelistProperty = config.get(
             Categories.spawning,

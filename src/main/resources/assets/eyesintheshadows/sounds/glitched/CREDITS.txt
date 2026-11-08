@@ -1,0 +1,24 @@
+Glitched sounds for the eyes in the dimensions of "glitched_sound_dimensions" (Dimensional Doors' Limbo).
+All of these were made mono, run through a glitch (slices stuttered, reversed, pitch-jumped, turned to noise or cut
+out, then bitcrushed and downsampled) and brought to matched loudness. Some play at a set pitch (sounds.json).
+
+laugh1-4.ogg, disappear.ogg, jumpscare1.ogg  Eyes in the Darkness' tickle1-4, screech and screech2, by gigaherz
+                                             (BSD 3-Clause, https://github.com/gigaherz/EyesInTheDarkness)
+giggle1.ogg     Girl Giggle.wav by mikalikes, CC0                            https://freesound.org/s/202340/
+giggle2.ogg     short giggle by holadios, CC BY 3.0                          https://freesound.org/s/204497/
+giggle3.ogg     Giggle closed mouth young lady teenage girl.wav by AderuMoro, CC BY 4.0
+                                                                             https://freesound.org/s/213291/
+giggle4.ogg     scary laughing sound effect 2 Rea.wav by reasanka, CC0       https://freesound.org/s/347912/
+giggle5.ogg     Girl Chuckle.wav by BlueSiren, CC0                           https://freesound.org/s/377742/
+whisper1.ogg    Shadows by carmsie, CC0                                      https://freesound.org/s/271634/
+whisper2.ogg    whispers.mp3 by saha213131, CC0                              https://freesound.org/s/679010/
+jumpscare2.ogg  Dark ambient scream.wav by JomelleJager, CC BY 3.0           https://freesound.org/s/256643/
+jumpscare3.ogg  Jumpscare Scream by Breviceps, CC0                           https://freesound.org/s/587354/
+disappear_breath_*.ogg   Spirit-Breath1.aif by timgormly, CC0             https://freesound.org/s/152721/
+disappear_sigh_*.ogg     Ghostly Sigh.wav by HorrorAudio, CC0              https://freesound.org/s/359153/
+disappear_kidsigh_*.ogg  Ghost Kid sigh, less verb by HorrorAudio, CC0     https://freesound.org/s/507451/
+disappear_gasp_*.ogg     Ghostgasp (Quick, Eerie Breath) by IndyArts, CC BY 4.0
+                                                                           https://freesound.org/s/720420/
+(_og is the glitch setting picked, _s<seed> the same setting with another seed.)
+
+CC BY 3.0: https://creativecommons.org/licenses/by/3.0/   CC BY 4.0: https://creativecommons.org/licenses/by/4.0/

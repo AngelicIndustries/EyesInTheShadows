@@ -1,7 +1,8 @@
 package org.fentanylsolutions.eyesintheshadows.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.audio.ISound;
+import net.minecraft.client.audio.PositionedSound;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.MathHelper;
@@ -11,6 +12,7 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.fentanylsolutions.eyesintheshadows.Config;
 import org.fentanylsolutions.eyesintheshadows.EyesInTheShadows;
+import org.fentanylsolutions.eyesintheshadows.util.Util;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Rectangle;
 
@@ -59,9 +61,25 @@ public class JumpscareOverlay extends Gui {
         progress = 0;
         mc.getSoundHandler()
             .playSound(
-                PositionedSoundRecord.func_147674_a(
-                    new ResourceLocation(EyesInTheShadows.varInstanceCommon.jumpScareSound),
+                new JumpscareSound(
+                    new ResourceLocation(
+                        mc.theWorld != null && Util.isDimensionListed(mc.theWorld, Config.glitchedSoundDimensions)
+                            ? EyesInTheShadows.varInstanceCommon.glitchedJumpScareSound
+                            : EyesInTheShadows.varInstanceCommon.jumpScareSound),
                     Config.eyeJumpscareVolume));
+    }
+
+    /**
+     * The jumpscare at the player's ears, at the configured volume. (PositionedSoundRecord.func_147674_a, the button
+     * click's, plays at a quarter volume and takes the second argument as the pitch.)
+     */
+    private static final class JumpscareSound extends PositionedSound {
+
+        JumpscareSound(ResourceLocation sound, float volume) {
+            super(sound);
+            this.volume = volume;
+            this.field_147666_i = ISound.AttenuationType.NONE;
+        }
     }
 
     @SubscribeEvent

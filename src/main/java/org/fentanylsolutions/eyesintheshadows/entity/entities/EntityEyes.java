@@ -505,15 +505,22 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
     @Override
     protected String getDeathSound() {
-        return EyesInTheShadows.varInstanceCommon.disappearSound;
+        return Util.isDimensionListed(worldObj, Config.glitchedSoundDimensions)
+            ? EyesInTheShadows.varInstanceCommon.glitchedDisappearSound
+            : EyesInTheShadows.varInstanceCommon.disappearSound;
     }
 
+    /** A laugh, or where the eyes sound glitched, mostly whispers and a giggle one time in three. */
     @Override
     protected String getLivingSound() {
         if (getTargetId() >= 0 && !isPlayerLookingInMyGeneralDirection()) {
             return null;
         }
-        return EyesInTheShadows.varInstanceCommon.laughSound;
+        if (!Util.isDimensionListed(worldObj, Config.glitchedSoundDimensions)) {
+            return EyesInTheShadows.varInstanceCommon.laughSound;
+        }
+        return rand.nextInt(3) == 0 ? EyesInTheShadows.varInstanceCommon.glitchedLaughSound
+            : EyesInTheShadows.varInstanceCommon.glitchedWhisperSound;
     }
 
     protected float getSoundVolume() {
