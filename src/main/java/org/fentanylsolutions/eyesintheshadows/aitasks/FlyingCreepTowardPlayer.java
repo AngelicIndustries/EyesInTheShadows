@@ -8,6 +8,7 @@ import net.minecraft.util.Vec3;
 
 import org.fentanylsolutions.eyesintheshadows.Config;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
+import org.fentanylsolutions.eyesintheshadows.util.Restrictions;
 
 public class FlyingCreepTowardPlayer extends EntityAIBase {
 
@@ -42,6 +43,8 @@ public class FlyingCreepTowardPlayer extends EntityAIBase {
         } else if (!target.isEntityAlive()) {
             return false;
         } else if (!(target instanceof EntityPlayerMP)) {
+            return false;
+        } else if (Restrictions.blocks(Restrictions.APPROACH, target)) {
             return false;
         } else if (eyes.isPlayerLookingInMyGeneralDirection() || eyes.getBrightness() <= 0) {
             return false;

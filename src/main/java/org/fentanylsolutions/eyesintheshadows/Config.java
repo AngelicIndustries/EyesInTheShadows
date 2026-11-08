@@ -10,6 +10,7 @@ import net.minecraftforge.common.config.Property;
 
 import org.fentanylsolutions.eyesintheshadows.util.PotionPools;
 import org.fentanylsolutions.eyesintheshadows.util.PotionUtil;
+import org.fentanylsolutions.eyesintheshadows.util.Restrictions;
 import org.fentanylsolutions.eyesintheshadows.util.Util;
 
 import cpw.mods.fml.client.config.GuiConfigEntries;
@@ -25,6 +26,7 @@ public class Config {
         public static final boolean passiveEyes = false;
         public static final boolean debugMode = false;
         public static final boolean jumpscare = true;
+        public static final String[] placeRestrictions = new String[0];
         public static final boolean eyesCanAttackWhileLit = false;
         public static final double speedNoAggro = 0.1;
         public static final double speedFullAggro = 0.5;
@@ -83,6 +85,9 @@ public class Config {
         public static final int health = 1;
         public static final float scaleFactor = 1F;
         public static final float eyeGlowStrength = 1.3F;
+        public static final double jumpscareSeconds = 10;
+        public static final boolean jumpscareEyes = true;
+        public static final boolean jumpscareCreature = true;
         public static final int eyeGlowPasses = 1;
         public static final String[] whiteEyeDimensions = { "Limbo" };
         public static final String[] glitchedDimensions = { "Limbo" };
@@ -135,6 +140,7 @@ public class Config {
     public static boolean passiveEyes = Defaults.passiveEyes;
     public static boolean debugMode = Defaults.debugMode;
     public static boolean jumpscare = Defaults.jumpscare;
+    public static String[] placeRestrictions = Defaults.placeRestrictions;
     public static boolean eyesCanAttackWhileLit = Defaults.eyesCanAttackWhileLit;
 
     /* potion */
@@ -198,6 +204,9 @@ public class Config {
     public static int health = Defaults.health;
     public static float scaleFactor = Defaults.scaleFactor;
     public static float eyeGlowStrength = Defaults.eyeGlowStrength;
+    public static double jumpscareSeconds = Defaults.jumpscareSeconds;
+    public static boolean jumpscareEyes = Defaults.jumpscareEyes;
+    public static boolean jumpscareCreature = Defaults.jumpscareCreature;
     public static int eyeGlowPasses = Defaults.eyeGlowPasses;
     public static String[] whiteEyeDimensions = Defaults.whiteEyeDimensions;
     public static String[] glitchedDimensions = Defaults.glitchedDimensions;
@@ -262,6 +271,29 @@ public class Config {
                 1,
                 4);
             eyeGlowPasses = eyeGlowPassesProperty.getInt();
+
+            Property jumpscareSecondsProperty = config.get(
+                Categories.visual,
+                "jumpscareSeconds",
+                Defaults.jumpscareSeconds,
+                "How long the jumpscare lasts, in seconds. The eyes opening, the moment of black and the creature fading take 2.5 seconds; the eyes stare and then blink with the creature for the rest.",
+                2.5,
+                60);
+            jumpscareSeconds = jumpscareSecondsProperty.getDouble();
+
+            Property jumpscareEyesProperty = config.get(
+                Categories.visual,
+                "jumpscareEyes",
+                Defaults.jumpscareEyes,
+                "Whether the jumpscare shows the eyes (textures/jumpscare/eyes_0.png on, as many frames as a resource pack gives).");
+            jumpscareEyes = jumpscareEyesProperty.getBoolean();
+
+            Property jumpscareCreatureProperty = config.get(
+                Categories.visual,
+                "jumpscareCreature",
+                Defaults.jumpscareCreature,
+                "Whether the jumpscare shows the creature behind the eyes (textures/jumpscare/creature.png).");
+            jumpscareCreature = jumpscareCreatureProperty.getBoolean();
 
             Property whiteEyeDimensionsProperty = config.get(
                 Categories.visual,
@@ -333,6 +365,14 @@ public class Config {
         Property jumpscareProperty = config
             .get(Categories.general, "jumpscare", Defaults.jumpscare, "Set to false to disable the jumpscare system.");
         jumpscare = jumpscareProperty.getBoolean();
+
+        Property placeRestrictionsProperty = config.get(
+            Categories.general,
+            "placeRestrictions",
+            Defaults.placeRestrictions,
+            "What the eyes may not do to players in some places, one place per line as place=what. The place is a dimension name (printDimensions lists them), or biome: and a biome name, for the biome the player stands in. What is any of jumpscare (no jumpscare screen, sound or its potion effect), hurt (no damage) and approach (they never creep up on the player, only watch), separated by commas, like Overworld=jumpscare,hurt. An eye that reaches a player it may neither jumpscare nor hurt just vanishes. Potion effects on touching and looking at eyes follow potionPoolRules.");
+        placeRestrictions = placeRestrictionsProperty.getStringList();
+        Restrictions.load(placeRestrictions);
 
         Property eyesCanAttackWhileLitProperty = config.get(
             Categories.general,

@@ -9,8 +9,6 @@ import cpw.mods.fml.common.Loader;
 public class VarInstanceClient {
 
     public ResourceLocation eyesTexture = new ResourceLocation(EyesInTheShadows.MODID + ":textures/entity/eyes1.png");
-    public ResourceLocation eyes2Texture = new ResourceLocation(EyesInTheShadows.MODID + ":textures/entity/eyes2.png");
-    public ResourceLocation creepyTexture = new ResourceLocation(EyesInTheShadows.MODID + ":textures/creepy.png");
 
     public boolean configMaxxingLoaded;
 

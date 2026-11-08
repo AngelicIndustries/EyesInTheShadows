@@ -34,6 +34,7 @@ import org.fentanylsolutions.eyesintheshadows.mixins.early.minecraft.AccessorEnt
 import org.fentanylsolutions.eyesintheshadows.packet.PacketHandler;
 import org.fentanylsolutions.eyesintheshadows.packet.packets.InitiateJumpscarePacket;
 import org.fentanylsolutions.eyesintheshadows.util.PotionPools;
+import org.fentanylsolutions.eyesintheshadows.util.Restrictions;
 import org.fentanylsolutions.eyesintheshadows.util.TraceUtil;
 import org.fentanylsolutions.eyesintheshadows.util.Util;
 
@@ -351,7 +352,8 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
     @Override
     public boolean attackEntityAsMob(Entity attackedEntity) {
-        boolean jumpScared = Config.jumpscare && attackedEntity instanceof EntityPlayerMP;
+        boolean player = attackedEntity instanceof EntityPlayerMP;
+        boolean jumpScared = Config.jumpscare && player && !Restrictions.blocks(Restrictions.JUMPSCARE, attackedEntity);
         if (jumpScared) {
             PotionPools.inflict(
                 "attack",
@@ -362,6 +364,11 @@ public class EntityEyes extends EntityFlying implements IModEntity {
                 EyesInTheShadows.varInstanceCommon.rand);
             jumpscare((EntityPlayerMP) attackedEntity);
             disappear(false);
+        }
+        if (player && Restrictions.blocks(Restrictions.HURT, attackedEntity)) {
+            // Only goes, with its own sound unless the jumpscare made one
+            disappear(!jumpScared);
+            return false;
         }
 
         /*

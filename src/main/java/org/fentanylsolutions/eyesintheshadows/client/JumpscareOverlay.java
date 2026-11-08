@@ -1,10 +1,23 @@
 package org.fentanylsolutions.eyesintheshadows.client;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.PositionedSound;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.resources.IReloadableResourceManager;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -14,17 +27,23 @@ import org.fentanylsolutions.eyesintheshadows.Config;
 import org.fentanylsolutions.eyesintheshadows.EyesInTheShadows;
 import org.fentanylsolutions.eyesintheshadows.util.Util;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.Rectangle;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
-public class JumpscareOverlay extends Gui {
+/**
+ * The jumpscare: the screen darkens as the eyes open on it (textures/jumpscare/eyes_0.png on, as many frames as there
+ * are), stare, then blink with the creature behind them (textures/jumpscare/creature.png), and after a moment of black
+ * the creature fades. Each image is drawn at its own size, so a resource pack can swap them, and either can be turned
+ * off (Config.jumpscareEyes, Config.jumpscareCreature). Config.jumpscareSeconds stretches the stare and the blinking.
+ */
+public class JumpscareOverlay extends Gui implements IResourceManagerReloadListener {
 
-    private static final ResourceLocation TEXTURE_EYES = EyesInTheShadows.varInstanceClient.eyes2Texture;
-    private static final ResourceLocation TEXTURE_FLASH = EyesInTheShadows.varInstanceClient.creepyTexture;
+    private static final String FOLDER = EyesInTheShadows.MODID + ":textures/jumpscare/";
+    private static final ResourceLocation CREATURE = new ResourceLocation(FOLDER + "creature.png");
+    private static final int MAX_FRAMES = 64;
 
     public static JumpscareOverlay INSTANCE = new JumpscareOverlay();
 
@@ -35,21 +54,16 @@ public class JumpscareOverlay extends Gui {
 
     private Minecraft mc;
 
-    private static final Rectangle[] FRAMES = { new Rectangle(0, 0, 13, 6), new Rectangle(0, 7, 13, 6),
-        new Rectangle(0, 14, 13, 6), new Rectangle(0, 21, 13, 6), new Rectangle(15, 1, 15, 8),
-        new Rectangle(15, 16, 15, 12), };
+    /** The eyes opening, the black and the fade, in ticks; the stare and blinking share the rest of the length. */
     private static final int ANIMATION_APPEAR = 10;
-    private static final int ANIMATION_LINGER = 90;
-    private static final int ANIMATION_BLINK = 60;
-    private static final int ANIMATION_SCARE1 = 20;
+    private static final int ANIMATION_SCARE = 20;
     private static final int ANIMATION_FADE = 20;
-    private static final int ANIMATION_BLINK_START = ANIMATION_APPEAR + ANIMATION_LINGER;
-    private static final int ANIMATION_SCARE_START = ANIMATION_BLINK_START + ANIMATION_BLINK;
-    private static final int ANIMATION_FADE_START = ANIMATION_SCARE_START + ANIMATION_SCARE1;
-    private static final int ANIMATION_TOTAL = ANIMATION_APPEAR + ANIMATION_LINGER
-        + ANIMATION_BLINK
-        + ANIMATION_SCARE1
-        + ANIMATION_FADE;
+    private static final float LINGER_SHARE = 0.6F;
+    private float blinkStart, scareStart, total;
+
+    /** The eyes' frames, and each image's size, read when first drawn after the resources load. */
+    private List<ResourceLocation> frames;
+    private final Map<ResourceLocation, int[]> sizes = new HashMap<>();
 
     private JumpscareOverlay() {
         mc = Minecraft.getMinecraft();
@@ -57,11 +71,23 @@ public class JumpscareOverlay extends Gui {
         FMLCommonHandler.instance()
             .bus()
             .register(this);
+        ((IReloadableResourceManager) mc.getResourceManager()).registerReloadListener(this);
+    }
+
+    @Override
+    public void onResourceManagerReload(IResourceManager manager) {
+        frames = null;
+        sizes.clear();
     }
 
     public void show(double ex, double ey, double ez) {
         visible = true;
         progress = 0;
+        float length = (float) (Config.jumpscareSeconds * 20);
+        float rest = Math.max(0, length - ANIMATION_APPEAR - ANIMATION_SCARE - ANIMATION_FADE);
+        blinkStart = ANIMATION_APPEAR + rest * LINGER_SHARE;
+        scareStart = ANIMATION_APPEAR + rest;
+        total = scareStart + ANIMATION_SCARE + ANIMATION_FADE;
         glitched = mc.theWorld != null && Util.isDimensionListed(mc.theWorld, Config.glitchedDimensions);
         mc.getSoundHandler()
             .playSound(
@@ -92,7 +118,7 @@ public class JumpscareOverlay extends Gui {
         }
         if (visible) {
             progress++;
-            if (progress >= ANIMATION_TOTAL) {
+            if (progress >= total) {
                 visible = false;
                 progress = 0;
             }
@@ -119,7 +145,7 @@ public class JumpscareOverlay extends Gui {
         }
 
         float time = progress + event.renderTickTime;
-        if (time >= ANIMATION_TOTAL) {
+        if (time >= total) {
             visible = false;
             progress = 0;
             return;
@@ -129,8 +155,8 @@ public class JumpscareOverlay extends Gui {
         // Where the eyes are glitched, the whole screen breaks up, heaviest from the scare on
         if (glitched) {
             float envelope = MathHelper
-                .clamp_float(Math.min(time / ANIMATION_APPEAR, (ANIMATION_TOTAL - time) / ANIMATION_FADE), 0, 1);
-            JumpscareGlitch.render(envelope * (time >= ANIMATION_SCARE_START ? 1.0F : 0.75F), event.renderTickTime);
+                .clamp_float(Math.min(time / ANIMATION_APPEAR, (total - time) / ANIMATION_FADE), 0, 1);
+            JumpscareGlitch.render(envelope * (time >= scareStart ? 1.0F : 0.75F), event.renderTickTime);
         }
     }
 
@@ -151,88 +177,60 @@ public class JumpscareOverlay extends Gui {
         GL11.glDepthMask(false);
         try {
             float darkening = MathHelper
-                .clamp_float(Math.min(time / ANIMATION_APPEAR, (ANIMATION_TOTAL - time) / ANIMATION_FADE), 0, 1);
+                .clamp_float(Math.min(time / ANIMATION_APPEAR, (total - time) / ANIMATION_FADE), 0, 1);
 
-            boolean showCreep = false;
-            int blinkstate = 0;
-            if (time >= ANIMATION_BLINK_START) {
-                if (time >= ANIMATION_SCARE_START) {
-                    blinkstate = 1;
-                    showCreep = (time - ANIMATION_SCARE_START) > ANIMATION_SCARE1;
+            boolean showCreature = false;
+            boolean blink = false;
+            if (time >= blinkStart) {
+                if (time >= scareStart) {
+                    // A moment of black, then the creature fading
+                    blink = true;
+                    showCreature = time - scareStart > ANIMATION_SCARE;
                 } else {
-                    float fade = Math.max(0, (time - ANIMATION_BLINK_START) / ANIMATION_BLINK);
+                    // The eyes and the creature take turns, ever faster
+                    float fade = Math.max(0, (time - blinkStart) / (scareStart - blinkStart));
                     float blinkspeed = (float) (1 + Math.pow(fade, 3));
-                    blinkstate = MathHelper.floor_float(20 * blinkspeed) & 1;
-                    showCreep = blinkstate == 1;
+                    blink = (MathHelper.floor_float(20 * blinkspeed) & 1) == 1;
+                    showCreature = blink;
                 }
             }
 
             int alpha = MathHelper.floor_double(darkening * 255);
-
-            if (showCreep) {
-                int texW = 2048;
-                int texH = 1024;
-
-                float scale1 = screenHeight / (float) texH;
-                int drawY = 0;
-                int drawH = screenHeight;
-                int drawW = MathHelper.floor_float(texW * scale1);
-                int drawX = (screenWidth - drawW) / 2;
+            int[] creatureSize = showCreature && Config.jumpscareCreature ? size(CREATURE) : null;
+            if (creatureSize != null) {
+                // As tall as the screen
+                float drawW = creatureSize[0] * screenHeight / (float) creatureSize[1];
                 GL11.glEnable(GL11.GL_BLEND);
-
-                GL11.glColor4f(1, 1, 1, alpha / 255.0F);
-
-                drawScaledCustomTexture(
-                    TEXTURE_FLASH,
-                    texW,
-                    texH,
-                    0,
-                    0,
-                    texW,
-                    texH,
-                    drawX,
-                    drawY,
-                    drawW,
-                    drawH,
-                    (alpha << 24) | 0xFFFFFF);
-                GL11.glFlush();
+                drawTexture(CREATURE, (screenWidth - drawW) / 2, 0, drawW, screenHeight, (alpha << 24) | 0xFFFFFF);
             } else {
                 drawRect(0, 0, screenWidth, screenHeight, alpha << 24);
                 GL11.glColor4f(1, 1, 1, 1);
                 GL11.glEnable(GL11.GL_BLEND);
             }
 
-            if (blinkstate == 1) {
+            List<ResourceLocation> frames = frames();
+            if (blink || !Config.jumpscareEyes || frames.isEmpty()) {
                 return;
             }
 
+            // One whole-pixel scale for every frame, the biggest that fits all within most of the screen, growing in
             float scale = Float.MAX_VALUE;
-            for (Rectangle r : FRAMES) {
-                float s = Math.min(
-                    MathHelper.floor_double(screenWidth * 0.8 / (float) r.getWidth()),
-                    MathHelper.floor_double(screenHeight * 0.8 / (float) r.getHeight()));
-                scale = Math.min(scale, s);
+            for (ResourceLocation frame : frames) {
+                int[] size = size(frame);
+                scale = Math.min(
+                    scale,
+                    Math.min(
+                        MathHelper.floor_double(screenWidth * 0.8 / size[0]),
+                        MathHelper.floor_double(screenHeight * 0.8 / size[1])));
             }
-
             scale = Math.min(1, (1 + time) / (1 + ANIMATION_APPEAR)) * scale;
 
-            int currentFrame = Math
-                .min(FRAMES.length - 1, MathHelper.floor_float(FRAMES.length * time / ANIMATION_APPEAR));
-
-            Rectangle rect = FRAMES[currentFrame];
-            int tx = rect.getX();
-            int ty = rect.getY();
-            int tw = rect.getWidth();
-            int th = rect.getHeight();
-
-            float drawW = (tw) * scale;
-            float drawH = (th) * scale;
-            float drawX = ((screenWidth - drawW) / 2.0f);
-            float drawY = ((screenHeight - drawH) / 2.0f);
-
-            float texW = 32;
-            float texH = 32;
-            drawScaledCustomTexture(TEXTURE_EYES, texW, texH, tx, ty, tw, th, drawX, drawY, drawW, drawH);
+            ResourceLocation frame = frames
+                .get(Math.min(frames.size() - 1, MathHelper.floor_float(frames.size() * time / ANIMATION_APPEAR)));
+            int[] size = size(frame);
+            float drawW = size[0] * scale;
+            float drawH = size[1] * scale;
+            drawTexture(frame, (screenWidth - drawW) / 2, (screenHeight - drawH) / 2, drawW, drawH, 0xFFFFFFFF);
 
             GL11.glDisable(GL11.GL_ALPHA_TEST);
 
@@ -245,50 +243,50 @@ public class JumpscareOverlay extends Gui {
         }
     }
 
-    private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th,
-        float targetX, float targetY, float targetW, float targetH) {
-        mc.renderEngine.bindTexture(tex);
-
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-
-        tessellator.addVertexWithUV(targetX, targetY, 0, tx / texW, ty / texH);
-        tessellator.addVertexWithUV(targetX, targetY + targetH, 0, tx / texW, (ty + th) / texH);
-        tessellator.addVertexWithUV(targetX + targetW, targetY + targetH, 0, (tx + tw) / texW, (ty + th) / texH);
-        tessellator.addVertexWithUV(targetX + targetW, targetY, 0, (tx + tw) / texW, ty / texH);
-
-        tessellator.draw();
+    /** The eyes' frames there are: eyes_0.png, eyes_1.png and on, until one is missing. */
+    private List<ResourceLocation> frames() {
+        if (frames == null) {
+            frames = new ArrayList<>();
+            for (int i = 0; i < MAX_FRAMES; i++) {
+                ResourceLocation frame = new ResourceLocation(FOLDER + "eyes_" + i + ".png");
+                if (size(frame) == null) break;
+                frames.add(frame);
+            }
+        }
+        return frames;
     }
 
-    private void drawScaledCustomTexture(ResourceLocation tex, float texW, float texH, int tx, int ty, int tw, int th,
-        float targetX, float targetY, float targetW, float targetH, int color) {
-        int a = (color >> 24) & 255;
-        int r = (color >> 16) & 255;
-        int g = (color >> 8) & 255;
-        int b = (color >> 0) & 255;
+    /** An image's width and height, or null when it is missing. */
+    private int[] size(ResourceLocation image) {
+        if (!sizes.containsKey(image)) {
+            int[] size = null;
+            try (InputStream in = mc.getResourceManager()
+                .getResource(image)
+                .getInputStream()) {
+                BufferedImage read = ImageIO.read(in);
+                if (read != null) size = new int[] { read.getWidth(), read.getHeight() };
+            } catch (IOException e) {
+                // Missing: not drawn
+            }
+            sizes.put(image, size);
+        }
+        return sizes.get(image);
+    }
 
-        mc.renderEngine.bindTexture(tex);
-
+    /** A whole image, tinted and faded by the color (ARGB). */
+    private void drawTexture(ResourceLocation image, float x, float y, float width, float height, int color) {
+        mc.renderEngine.bindTexture(image);
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
-
-        // GL11.glDisable(GL11.GL_ALPHA_TEST);
-
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
         Tessellator tessellator = Tessellator.instance;
-
-        // EyesInTheShadows.debug("Showing creep, alpha: " + a);
-
         tessellator.startDrawingQuads();
-        tessellator.setColorRGBA(r, g, b, a);
-        tessellator.addVertexWithUV(targetX, targetY, 0, tx / texW, ty / texH);
-        tessellator.addVertexWithUV(targetX, targetY + targetH, 0, tx / texW, (ty + th) / texH);
-        tessellator.addVertexWithUV(targetX + targetW, targetY + targetH, 0, (tx + tw) / texW, (ty + th) / texH);
-        tessellator.addVertexWithUV(targetX + targetW, targetY, 0, (tx + tw) / texW, ty / texH);
-
+        tessellator.setColorRGBA(color >> 16 & 255, color >> 8 & 255, color & 255, color >>> 24);
+        tessellator.addVertexWithUV(x, y, 0, 0, 0);
+        tessellator.addVertexWithUV(x, y + height, 0, 0, 1);
+        tessellator.addVertexWithUV(x + width, y + height, 0, 1, 1);
+        tessellator.addVertexWithUV(x + width, y, 0, 1, 0);
         tessellator.draw();
-
         GL11.glPopAttrib();
     }
 }
