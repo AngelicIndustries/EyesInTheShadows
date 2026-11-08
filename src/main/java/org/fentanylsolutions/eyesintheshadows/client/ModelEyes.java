@@ -1,5 +1,7 @@
 package org.fentanylsolutions.eyesintheshadows.client;
 
+import java.util.Random;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
@@ -61,7 +63,9 @@ public class ModelEyes extends ModelBase {
 
     public void renderEyes(EntityEyes parEntity, float parTime, float parSwingSuppress, float par4, float parHeadAngleY,
         float parHeadAngleX, float par7) {
-        if (!parEntity.isEntityAlive()) {
+        // Dead eyes aren't drawn, except glitched ones going out
+        if (!parEntity.isEntityAlive() && (parEntity.isDead || parEntity.deathTime == 0
+            || !Util.isDimensionListed(parEntity.worldObj, Config.glitchedDimensions))) {
             return;
         }
 
@@ -157,17 +161,8 @@ public class ModelEyes extends ModelBase {
         Vec3 eyeEyePos = Vec3
             .createVectorHelper(parEntity.posX, parEntity.posY + parEntity.getEyeHeight(), parEntity.posZ);
         Entity target = RenderManager.instance.livingPlayer.worldObj.getEntityByID(parEntity.getTargetId());
-        Vec3 playerEyePos;
-        if (target == null) {
-            playerEyePos = Vec3.createVectorHelper(
-                RenderManager.instance.livingPlayer.posX,
-                RenderManager.instance.livingPlayer.boundingBox.minY
-                    + RenderManager.instance.livingPlayer.getEyeHeight(),
-                RenderManager.instance.livingPlayer.posZ);
-        } else {
-            playerEyePos = Vec3
-                .createVectorHelper(target.posX, target.boundingBox.minY + target.getEyeHeight(), target.posZ);
-        }
+        Entity watched = target == null ? RenderManager.instance.livingPlayer : target;
+        Vec3 playerEyePos = Vec3.createVectorHelper(watched.posX, eyeLevel(watched), watched.posZ);
 
         Vec3 eyesToPlayer = playerEyePos.subtract(eyeEyePos)
             .normalize();
@@ -218,25 +213,46 @@ public class ModelEyes extends ModelBase {
         final float th = 5 / 32f;
         float hoff = getBlinkTextureOffset(parEntity, parTime, th);
 
-        for (int pass = 0; pass < fullGlowPasses; ++pass) {
-            tessellator.startDrawingQuads();
-            // tessellator.setNormal(0.0F, 0.0F, 1.0F);
-
-            tessellator.addVertexWithUV(-w, -h, 0, 0, hoff + th);
-            tessellator.addVertexWithUV(-w, h, 0, 0, hoff);
-            tessellator.addVertexWithUV(w, h, 0, tw, hoff);
-            tessellator.addVertexWithUV(w, -h, 0, tw, hoff + th);
-
-            tessellator.draw();
-        }
-        if (partialGlowPass > 0.0F) {
-            GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha * partialGlowPass);
-            tessellator.startDrawingQuads();
-            tessellator.addVertexWithUV(-w, -h, 0, 0, hoff + th);
-            tessellator.addVertexWithUV(-w, h, 0, 0, hoff);
-            tessellator.addVertexWithUV(w, h, 0, tw, hoff);
-            tessellator.addVertexWithUV(w, -h, 0, tw, hoff + th);
-            tessellator.draw();
+        Glitch glitch = Glitch.of(parEntity);
+        float[] shifts = glitch != null ? glitch.shifts : null;
+        float flicker = glitch != null ? glitch.brightness : 1.0F;
+        if (parEntity.deathTime > 0 && Util.isDimensionListed(parEntity.worldObj, Config.glitchedDimensions)) {
+            // Going out as an old screen switches off: squashed into a bright line, torn, that shrinks away. Each eye
+            // goes one way, flat and torn sideways or upright and torn up and down
+            boolean upright = (parEntity.getEntityId() * 0x9E3779B9 >>> 16 & 1) == 1;
+            float t = Math.min(1, parEntity.deathTime / (float) EntityEyes.GLITCH_DEATH_TICKS);
+            float squash, stretch;
+            if (upright) {
+                // Pinched into a thin upright line early, so the eyes run together into one
+                squash = t < 0.2F ? 1 - t / 0.2F * 0.95F : 0.05F * (1 - (t - 0.2F) / 0.8F);
+                stretch = t < 0.6F ? 1 + 3 * t : 2.8F * (1 - (t - 0.6F) / 0.4F);
+                GL11.glScalef(squash, stretch, 1.0F);
+            } else {
+                squash = t < 0.6F ? 1 - t / 0.6F * 0.92F : 0.08F * (1 - (t - 0.6F) / 0.4F);
+                stretch = t < 0.6F ? 1 + t : 1.6F * (1 - (t - 0.6F) / 0.4F);
+                GL11.glScalef(stretch, squash, 1.0F);
+            }
+            Random random = new Random(parEntity.getEntityId() * 31L ^ Minecraft.getSystemTime() / 30);
+            float[] tears = new float[6];
+            for (int i = 0; i < tears.length; i++) {
+                tears[i] = (random.nextFloat() - 0.5F) * (upright ? 0.3F : 0.5F) * (1 - t);
+            }
+            GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha);
+            // A pass more than the eyes have, so it flashes as it goes
+            for (int pass = 0; pass <= fullGlowPasses; ++pass) {
+                if (upright) drawEyesInColumns(tessellator, w, h, tw, th, hoff, tears);
+                else drawEyes(tessellator, w, h, tw, th, hoff, tears);
+            }
+        } else if (glitch == null || !glitch.hidden) {
+            // Glitched eyes tear sideways in bands and flicker, dimming or going out, while they make a sound
+            GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha * flicker);
+            for (int pass = 0; pass < fullGlowPasses; ++pass) {
+                drawEyes(tessellator, w, h, tw, th, hoff, shifts);
+            }
+            if (partialGlowPass > 0.0F) {
+                GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha * partialGlowPass * flicker);
+                drawEyes(tessellator, w, h, tw, th, hoff, shifts);
+            }
         }
 
         int packedLight = parEntity.getBrightnessForRender(parTime);
@@ -304,6 +320,79 @@ public class ModelEyes extends ModelBase {
 
     protected void spinZ(ModelRenderer model) {
         model.rotateAngleZ += degToRad(0.5F);
+    }
+
+    /**
+     * The height of an entity's eyes on the client. The player playing stands with its position already at its eyes
+     * (a y offset of 1.62) and an eye height of 0.12 over that; from the bottom of its box that's at its feet.
+     */
+    private static double eyeLevel(Entity entity) {
+        return entity == Minecraft.getMinecraft().thePlayer ? entity.posY : entity.posY + entity.getEyeHeight();
+    }
+
+    /** The eyes, whole, or in horizontal bands each shifted sideways by its own amount. */
+    private static void drawEyes(Tessellator tessellator, float w, float h, float tw, float th, float hoff,
+        float[] shifts) {
+        int bands = shifts == null ? 1 : shifts.length;
+        tessellator.startDrawingQuads();
+        for (int i = 0; i < bands; i++) {
+            float y0 = -h + 2 * h * i / bands, y1 = -h + 2 * h * (i + 1) / bands;
+            float v0 = hoff + th * (h - y0) / (2 * h), v1 = hoff + th * (h - y1) / (2 * h);
+            float dx = shifts == null ? 0 : shifts[i];
+            tessellator.addVertexWithUV(-w + dx, y0, 0, 0, v0);
+            tessellator.addVertexWithUV(-w + dx, y1, 0, 0, v1);
+            tessellator.addVertexWithUV(w + dx, y1, 0, tw, v1);
+            tessellator.addVertexWithUV(w + dx, y0, 0, tw, v0);
+        }
+        tessellator.draw();
+    }
+
+    /** The eyes in vertical columns, each shifted up or down by its own amount. */
+    private static void drawEyesInColumns(Tessellator tessellator, float w, float h, float tw, float th, float hoff,
+        float[] shifts) {
+        tessellator.startDrawingQuads();
+        for (int i = 0; i < shifts.length; i++) {
+            float x0 = -w + 2 * w * i / shifts.length, x1 = -w + 2 * w * (i + 1) / shifts.length;
+            float u0 = tw * (x0 + w) / (2 * w), u1 = tw * (x1 + w) / (2 * w);
+            float dy = shifts[i];
+            tessellator.addVertexWithUV(x0, -h + dy, 0, u0, hoff + th);
+            tessellator.addVertexWithUV(x0, h + dy, 0, u0, hoff);
+            tessellator.addVertexWithUV(x1, h + dy, 0, u1, hoff);
+            tessellator.addVertexWithUV(x1, -h + dy, 0, u1, hoff + th);
+        }
+        tessellator.draw();
+    }
+
+    /**
+     * How a glitched eye (Config.glitchedDimensions) is off right now, or null while it isn't: it glitches for as long
+     * as it makes a sound (SoundingEyes), changing every frame or two.
+     */
+    private static final class Glitch {
+
+        /** How long each look of the glitch lasts, in milliseconds. */
+        private static final long STEP = 30;
+
+        final boolean hidden;
+        final float brightness;
+        /** How far each horizontal band is torn sideways, top to bottom. */
+        final float[] shifts;
+
+        private Glitch(Random random) {
+            hidden = random.nextFloat() < 0.2F;
+            brightness = 0.35F + 0.65F * random.nextFloat();
+            shifts = new float[3 + random.nextInt(4)];
+            for (int i = 0; i < shifts.length; i++) {
+                shifts[i] = random.nextFloat() < 0.6F ? (random.nextFloat() - 0.5F) * 0.2F : 0;
+            }
+        }
+
+        static Glitch of(EntityEyes eyes) {
+            if (!Util.isDimensionListed(eyes.worldObj, Config.glitchedDimensions) || !SoundingEyes.isSounding(eyes)) {
+                return null;
+            }
+            long seed = eyes.getEntityId() * 0x9E3779B97F4A7C15L;
+            return new Glitch(new Random(seed ^ (Minecraft.getSystemTime() / STEP) * 31));
+        }
     }
 
     private float getBlinkTextureOffset(EntityEyes entity, float partialTicks, float th) {

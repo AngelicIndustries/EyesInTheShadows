@@ -260,6 +260,10 @@ public class EyesSpawningManager {
                 // We are adding 1 to Y so the eyes spawn 1 block above ground. We cant pass Y + 1 to
                 // canCreatureTypeSpawnAtLocation because it can only spawn stuff on the ground
                 entity.setPosition(pX, pY + 1, pZ);
+                // Only where they would show: not in daylight, nor in too much artificial light
+                if (Util.getEyeRenderingAlpha(entity, false) <= 0) {
+                    continue;
+                }
                 entity.onSpawnWithEgg(null);
                 EyesInTheShadows.debug("Spawned eyes @ {" + pX + ";" + pY + ";" + pZ + "}");
                 player.worldObj.spawnEntityInWorld(entity);

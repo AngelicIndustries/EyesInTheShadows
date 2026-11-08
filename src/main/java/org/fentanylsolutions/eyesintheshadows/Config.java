@@ -8,6 +8,7 @@ import net.minecraft.potion.Potion;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
+import org.fentanylsolutions.eyesintheshadows.util.PotionPools;
 import org.fentanylsolutions.eyesintheshadows.util.PotionUtil;
 import org.fentanylsolutions.eyesintheshadows.util.Util;
 
@@ -39,6 +40,7 @@ public class Config {
         public static final int potionLookDuration = 10;
         public static final int potionLookAmplifier = 0;
         public static final Potion[] potionIgnoreDisappearNames = { Potion.blindness, Potion.invisibility };
+        public static final String[] potionPoolRules = { "attack@Limbo+=potion.wither,potion.blindness" };
 
         /* eye aggression */
         public static final boolean enableEyeAggressionEscalation = true;
@@ -80,10 +82,12 @@ public class Config {
         public static final float blinkChance = 0.02F;
         public static final int health = 1;
         public static final float scaleFactor = 1F;
-        public static final float eyeGlowStrength = 2F;
+        public static final float eyeGlowStrength = 1.3F;
         public static final int eyeGlowPasses = 1;
         public static final String[] whiteEyeDimensions = { "Limbo" };
-        public static final String[] glitchedSoundDimensions = { "Limbo" };
+        public static final String[] glitchedDimensions = { "Limbo" };
+        public static final String[] alwaysDarkDimensions = { "Limbo" };
+        public static final int idleSoundInterval = 130;
         public static final boolean enableDynamicLightApproximation = true;
         public static final float eyeArtificialLightSensitivityOpenSky = 1.25F;
         public static final float eyeArtificialLightSensitivityCovered = 1.45F;
@@ -144,6 +148,7 @@ public class Config {
     public static int potionLookDuration = Defaults.potionLookDuration;
     public static int potionLookAmplifier = Defaults.potionLookAmplifier;
     public static Potion[] potionIgnoreDisappearNames = Defaults.potionIgnoreDisappearNames;
+    public static String[] potionPoolRules = Defaults.potionPoolRules;
 
     /* eye aggression */
     public static boolean enableEyeAggressionEscalation = Defaults.enableEyeAggressionEscalation;
@@ -195,7 +200,9 @@ public class Config {
     public static float eyeGlowStrength = Defaults.eyeGlowStrength;
     public static int eyeGlowPasses = Defaults.eyeGlowPasses;
     public static String[] whiteEyeDimensions = Defaults.whiteEyeDimensions;
-    public static String[] glitchedSoundDimensions = Defaults.glitchedSoundDimensions;
+    public static String[] glitchedDimensions = Defaults.glitchedDimensions;
+    public static String[] alwaysDarkDimensions = Defaults.alwaysDarkDimensions;
+    public static int idleSoundInterval = Defaults.idleSoundInterval;
     public static boolean enableDynamicLightApproximation = Defaults.enableDynamicLightApproximation;
     public static float eyeArtificialLightSensitivityOpenSky = Defaults.eyeArtificialLightSensitivityOpenSky;
     public static float eyeArtificialLightSensitivityCovered = Defaults.eyeArtificialLightSensitivityCovered;
@@ -425,6 +432,14 @@ public class Config {
             "List of potion effect names that prevent the eyes from disappearing while being looked at.");
         potionIgnoreDisappearNames = stringToPotionArr(potionIgnoreDisappearNamesProperty.getStringList());
 
+        Property potionPoolRulesProperty = config.get(
+            Categories.potion,
+            "potionPoolRules",
+            Defaults.potionPoolRules,
+            "Changes to the potion effect pools by dimension and biome, one rule per line: event@place=effects replaces the pool there, event@place+=effects adds to it. The event is attack (the jumpscare, potionNames), collision (potionCollisionNames) or look (potionLookNames). The place is a dimension name (printDimensions lists them) or biome: and a biome name; biome rules apply after dimension rules. Effects are potion names separated by commas, each optionally with its own duration in seconds and amplifier (potion.wither:8:1); none draws no effect, which lowers the odds of the others. One effect is drawn from the pool each time. By default the jumpscare in Dimensional Doors' Limbo can also wither or blind.");
+        potionPoolRules = potionPoolRulesProperty.getStringList();
+        PotionPools.load(potionPoolRules);
+
         /* eye aggro */
         Property eyeBaseAttackDamageProperty = config.get(
             Categories.eye_aggression,
@@ -570,12 +585,28 @@ public class Config {
             "Dimensions with more (or fewer) eyes, as name=multiplier: it multiplies how often eyes spawn there and how many there are around each player and in the whole dimension. Dimensional Doors' Limbo has ten times as many.");
         dimensionEyeMultipliers = dimensionEyeMultipliersProperty.getStringList();
 
-        Property glitchedSoundDimensionsProperty = config.get(
-            Categories.sound_volumes,
-            "glitchedSoundDimensions",
-            Defaults.glitchedSoundDimensions,
-            "Dimensions where the eyes sound glitched: they mostly whisper, giggle now and then, and have their own disappearing and jumpscare sounds. Dimensional Doors' Limbo has them.");
-        glitchedSoundDimensions = glitchedSoundDimensionsProperty.getStringList();
+        Property glitchedDimensionsProperty = config.get(
+            Categories.general,
+            "glitchedDimensions",
+            Defaults.glitchedDimensions,
+            "Dimensions where the eyes are glitched: they tear sideways and flicker for as long as they make a sound, go out in a glitch, mostly whisper, giggle now and then, have their own disappearing and jumpscare sounds, and their jumpscare glitches the screen. Dimensional Doors' Limbo has them.");
+        glitchedDimensions = glitchedDimensionsProperty.getStringList();
+
+        Property alwaysDarkDimensionsProperty = config.get(
+            Categories.general,
+            "alwaysDarkDimensions",
+            Defaults.alwaysDarkDimensions,
+            "Dimensions where daylight never shows: the eyes there are out, spawn and can attack at any hour, only lights keep them away. Dimensional Doors' Limbo keeps the Overworld's clock under a black sky.");
+        alwaysDarkDimensions = alwaysDarkDimensionsProperty.getStringList();
+
+        Property idleSoundIntervalProperty = config.get(
+            Categories.general,
+            "idleSoundInterval",
+            Defaults.idleSoundInterval,
+            "Ticks an eye waits after an idle sound before the chance of the next starts to grow (vanilla mobs wait 80).",
+            1,
+            Integer.MAX_VALUE);
+        idleSoundInterval = idleSoundIntervalProperty.getInt();
 
         Property dimensionListIsWhitelistProperty = config.get(
             Categories.spawning,

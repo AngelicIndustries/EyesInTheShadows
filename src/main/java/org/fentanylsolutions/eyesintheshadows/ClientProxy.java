@@ -7,6 +7,7 @@ import net.minecraftforge.common.MinecraftForge;
 import org.fentanylsolutions.eyesintheshadows.client.EyesRenderer;
 import org.fentanylsolutions.eyesintheshadows.client.EyesRendererAngelica;
 import org.fentanylsolutions.eyesintheshadows.client.ModelEyes;
+import org.fentanylsolutions.eyesintheshadows.client.SoundingEyes;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 import org.fentanylsolutions.eyesintheshadows.event.ClientEventHandler;
 import org.fentanylsolutions.eyesintheshadows.varinstances.VarInstanceClient;
@@ -39,6 +40,11 @@ public class ClientProxy extends CommonProxy {
 
         ClientEventHandler clientEventHandler = new ClientEventHandler();
         MinecraftForge.EVENT_BUS.register(clientEventHandler);
+        SoundingEyes soundingEyes = new SoundingEyes();
+        MinecraftForge.EVENT_BUS.register(soundingEyes);
+        FMLCommonHandler.instance()
+            .bus()
+            .register(soundingEyes);
         FMLCommonHandler.instance()
             .bus()
             .register(clientEventHandler);

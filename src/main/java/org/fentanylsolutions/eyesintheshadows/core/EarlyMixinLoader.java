@@ -24,7 +24,7 @@ public class EarlyMixinLoader implements IEarlyMixinLoader, IFMLLoadingPlugin {
         final List<String> mixins = new ArrayList<>();
         if (FMLLaunchHandler.side()
             .isClient()) {
-            // pass
+            mixins.add("minecraft.AccessorShaderGroup");
         }
         mixins.add("minecraft.AccessorEntityAINearestAttackableTarget");
         mixins.add("minecraft.AccessorDimensionManager");

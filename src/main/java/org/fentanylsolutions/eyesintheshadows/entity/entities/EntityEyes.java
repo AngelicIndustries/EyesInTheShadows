@@ -14,7 +14,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
@@ -34,12 +33,16 @@ import org.fentanylsolutions.eyesintheshadows.entity.IModEntity;
 import org.fentanylsolutions.eyesintheshadows.mixins.early.minecraft.AccessorEntityLiving;
 import org.fentanylsolutions.eyesintheshadows.packet.PacketHandler;
 import org.fentanylsolutions.eyesintheshadows.packet.packets.InitiateJumpscarePacket;
+import org.fentanylsolutions.eyesintheshadows.util.PotionPools;
 import org.fentanylsolutions.eyesintheshadows.util.TraceUtil;
 import org.fentanylsolutions.eyesintheshadows.util.Util;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 
 public class EntityEyes extends EntityFlying implements IModEntity {
+
+    /** How long glitched eyes take to go out when they die. */
+    public static final int GLITCH_DEATH_TICKS = 10;
 
     private static final int DATA_SCALE_FACTOR = 20;
     private static final int DATA_BRIGHTNESS = 21;
@@ -285,16 +288,13 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
                     if (shouldDisappear) {
                         disappear(true);
-                        if (Config.potionLookNames.length > 0) {
-                            Potion p = Config.potionLookNames[EyesInTheShadows.varInstanceCommon.rand
-                                .nextInt(Config.potionLookNames.length)];
-                            player.addPotionEffect(
-                                new PotionEffect(
-                                    p.getId(),
-                                    Config.potionLookDuration * 20,
-                                    Config.potionLookAmplifier));
-
-                        }
+                        PotionPools.inflict(
+                            "look",
+                            player,
+                            Config.potionLookNames,
+                            Config.potionLookDuration,
+                            Config.potionLookAmplifier,
+                            EyesInTheShadows.varInstanceCommon.rand);
                     }
                 }
             }
@@ -353,12 +353,13 @@ public class EntityEyes extends EntityFlying implements IModEntity {
     public boolean attackEntityAsMob(Entity attackedEntity) {
         boolean jumpScared = Config.jumpscare && attackedEntity instanceof EntityPlayerMP;
         if (jumpScared) {
-            if (Config.potionNames.length > 0) {
-                Potion p = Config.potionNames[EyesInTheShadows.varInstanceCommon.rand
-                    .nextInt(Config.potionNames.length)];
-                ((EntityLivingBase) attackedEntity)
-                    .addPotionEffect(new PotionEffect(p.getId(), Config.potionDuration * 20, Config.potionAmplifier));
-            }
+            PotionPools.inflict(
+                "attack",
+                (EntityLivingBase) attackedEntity,
+                Config.potionNames,
+                Config.potionDuration,
+                Config.potionAmplifier,
+                EyesInTheShadows.varInstanceCommon.rand);
             jumpscare((EntityPlayerMP) attackedEntity);
             disappear(false);
         }
@@ -505,22 +506,31 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
     @Override
     protected String getDeathSound() {
-        return Util.isDimensionListed(worldObj, Config.glitchedSoundDimensions)
+        return Util.isDimensionListed(worldObj, Config.glitchedDimensions)
             ? EyesInTheShadows.varInstanceCommon.glitchedDisappearSound
             : EyesInTheShadows.varInstanceCommon.disappearSound;
     }
 
-    /** A laugh, or where the eyes sound glitched, mostly whispers and a giggle one time in three. */
+    /**
+     * A laugh, or where the eyes sound glitched, mostly whispers and a giggle one time in three. Eyes too lit to show
+     * keep quiet.
+     */
     @Override
     protected String getLivingSound() {
-        if (getTargetId() >= 0 && !isPlayerLookingInMyGeneralDirection()) {
+        if (getTargetId() >= 0 && !isPlayerLookingInMyGeneralDirection()
+            || Util.getEyeRenderingAlpha(this, Config.eyesCanAttackWhileLit) <= 0) {
             return null;
         }
-        if (!Util.isDimensionListed(worldObj, Config.glitchedSoundDimensions)) {
+        if (!Util.isDimensionListed(worldObj, Config.glitchedDimensions)) {
             return EyesInTheShadows.varInstanceCommon.laughSound;
         }
         return rand.nextInt(3) == 0 ? EyesInTheShadows.varInstanceCommon.glitchedLaughSound
             : EyesInTheShadows.varInstanceCommon.glitchedWhisperSound;
+    }
+
+    @Override
+    public int getTalkInterval() {
+        return Config.idleSoundInterval;
     }
 
     protected float getSoundVolume() {
@@ -529,24 +539,28 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
     @Override
     protected void collideWithEntity(Entity entityIn) {
-        if (Util.getEyeRenderingAlpha(this, Config.eyesCanAttackWhileLit) <= 0) {
+        if (!(entityIn instanceof EntityPlayer) || ((EntityPlayer) entityIn).capabilities.isCreativeMode) {
             return;
         }
-
-        if (entityIn instanceof EntityPlayer && !((EntityPlayer) entityIn).capabilities.isCreativeMode) {
-            disappear(true);
-            if (Config.potionCollisionNames.length > 0) {
-                Potion p = Config.potionCollisionNames[EyesInTheShadows.varInstanceCommon.rand
-                    .nextInt(Config.potionCollisionNames.length)];
-
-                ((EntityLivingBase) entityIn).addPotionEffect(
-                    new PotionEffect(p.getId(), Config.potionCollisionDuration * 20, Config.potionCollisionAmplifier));
-            }
+        disappear(true);
+        // Eyes too lit to show just go; ones that show can leave an effect
+        if (Util.getEyeRenderingAlpha(this, Config.eyesCanAttackWhileLit) > 0) {
+            PotionPools.inflict(
+                "collision",
+                (EntityLivingBase) entityIn,
+                Config.potionCollisionNames,
+                Config.potionCollisionDuration,
+                Config.potionCollisionAmplifier,
+                EyesInTheShadows.varInstanceCommon.rand);
         }
         // super.collideWithEntity(entityIn);
     }
 
     private void disappear(boolean playDeathSound) {
+        // Already going: it would come back to life for a moment and make its sound again
+        if (this.isDead || this.getHealth() <= 0) {
+            return;
+        }
         this.setHealth(1);
         damageEntity(DamageSource.outOfWorld, 1);
         if (playDeathSound) {
@@ -572,8 +586,16 @@ public class EntityEyes extends EntityFlying implements IModEntity {
         return pass == 1;
     }
 
+    /**
+     * Gone in a puff of smoke, or where the eyes are glitched, out in a glitch over GLITCH_DEATH_TICKS (drawn by
+     * ModelEyes).
+     */
     @Override
     protected void onDeathUpdate() {
+        if (Util.isDimensionListed(worldObj, Config.glitchedDimensions)) {
+            if (++this.deathTime >= GLITCH_DEATH_TICKS) this.setDead();
+            return;
+        }
         this.setDead();
         for (int i = 0; i < 5; ++i) {
             double d2 = this.rand.nextGaussian() * 0.01D;

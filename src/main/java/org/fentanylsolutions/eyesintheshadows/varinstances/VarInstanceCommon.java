@@ -25,7 +25,7 @@ public class VarInstanceCommon {
     public String disappearSound = EyesInTheShadows.MODID + ":" + "mob.eyes.disappear";
     public String laughSound = EyesInTheShadows.MODID + ":" + "mob.eyes.laugh";
     public String jumpScareSound = EyesInTheShadows.MODID + ":" + "mob.eyes.jumpscare";
-    /* In the dimensions of Config.glitchedSoundDimensions */
+    /* In the dimensions of Config.glitchedDimensions */
     public String glitchedDisappearSound = EyesInTheShadows.MODID + ":" + "mob.eyes.glitched.disappear";
     public String glitchedLaughSound = EyesInTheShadows.MODID + ":" + "mob.eyes.glitched.laugh";
     public String glitchedWhisperSound = EyesInTheShadows.MODID + ":" + "mob.eyes.glitched.whisper";

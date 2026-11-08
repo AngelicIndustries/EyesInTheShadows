@@ -129,7 +129,7 @@ public class Util {
     }
 
     public static float getSunBrightness(World world) {
-        if (world.provider.hasNoSky) {
+        if (world.provider.hasNoSky || isDimensionListed(world, Config.alwaysDarkDimensions)) {
             return 0.F;
         }
         // System.out.println("sunBrightness: " + world.provider.getSunBrightness(1.0F));
@@ -210,16 +210,17 @@ public class Util {
         return Math.max(mixAlpha, 0);
     }
 
-    /* Not as advanced as getEyeRenderingAlpha */
-    /* Goes from 0 to 15 */
+    /*
+     * Not as advanced as getEyeRenderingAlpha. Goes from 0 to 15; sky light counts as the time of day leaves it (the
+     * saved value is 15 under open sky by night too).
+     */
     public static int getBrightnessAtCoord(World world, int x, int y, int z, boolean ignoreArtificialLight) {
+        int sky = isDimensionListed(world, Config.alwaysDarkDimensions) ? 0
+            : Math.max(0, world.getSavedLightValue(EnumSkyBlock.Sky, x, y, z) - world.skylightSubtracted);
         if (ignoreArtificialLight) {
-            return world.getSavedLightValue(EnumSkyBlock.Sky, x, y, z);
-        } else {
-            int sky = world.getSavedLightValue(EnumSkyBlock.Sky, x, y, z);
-            int block = world.getSavedLightValue(EnumSkyBlock.Block, x, y, z);
-            return Math.max(sky, block);
+            return sky;
         }
+        return Math.max(sky, world.getSavedLightValue(EnumSkyBlock.Block, x, y, z));
     }
 
     /* from Minecraft 1.19 net.minecraft.util.Mth */

@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Rectangle;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
@@ -28,6 +29,8 @@ public class JumpscareOverlay extends Gui {
     public static JumpscareOverlay INSTANCE = new JumpscareOverlay();
 
     private boolean visible = false;
+    /** Whether this jumpscare happens where the eyes are glitched (Config.glitchedDimensions). */
+    private boolean glitched;
     private float progress = 0;
 
     private Minecraft mc;
@@ -59,12 +62,12 @@ public class JumpscareOverlay extends Gui {
     public void show(double ex, double ey, double ez) {
         visible = true;
         progress = 0;
+        glitched = mc.theWorld != null && Util.isDimensionListed(mc.theWorld, Config.glitchedDimensions);
         mc.getSoundHandler()
             .playSound(
                 new JumpscareSound(
                     new ResourceLocation(
-                        mc.theWorld != null && Util.isDimensionListed(mc.theWorld, Config.glitchedSoundDimensions)
-                            ? EyesInTheShadows.varInstanceCommon.glitchedJumpScareSound
+                        glitched ? EyesInTheShadows.varInstanceCommon.glitchedJumpScareSound
                             : EyesInTheShadows.varInstanceCommon.jumpScareSound),
                     Config.eyeJumpscareVolume));
     }
@@ -96,19 +99,42 @@ public class JumpscareOverlay extends Gui {
         }
     }
 
-    @SubscribeEvent
-    public void overlayEvent(RenderGameOverlayEvent.Pre event) {
-        if (!visible || event.type != RenderGameOverlayEvent.ElementType.ALL) {
+    /**
+     * No HUD during the jumpscare: cancelling the whole of it first skips vanilla's and every overlay drawn with it,
+     * such
+     * as Better Sleeping's.
+     */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void hideHud(RenderGameOverlayEvent.Pre event) {
+        if (visible && event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            event.setCanceled(true);
+        }
+    }
+
+    /** Drawn last in the frame, over anything else a mod draws on the screen. */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void render(TickEvent.RenderTickEvent event) {
+        if (!visible || event.phase != TickEvent.Phase.END || mc.theWorld == null) {
             return;
         }
 
-        float time = progress + event.partialTicks;
+        float time = progress + event.renderTickTime;
         if (time >= ANIMATION_TOTAL) {
             visible = false;
             progress = 0;
             return;
         }
 
+        drawOverlay(time);
+        // Where the eyes are glitched, the whole screen breaks up, heaviest from the scare on
+        if (glitched) {
+            float envelope = MathHelper
+                .clamp_float(Math.min(time / ANIMATION_APPEAR, (ANIMATION_TOTAL - time) / ANIMATION_FADE), 0, 1);
+            JumpscareGlitch.render(envelope * (time >= ANIMATION_SCARE_START ? 1.0F : 0.75F), event.renderTickTime);
+        }
+    }
+
+    private void drawOverlay(float time) {
         int screenWidth = mc.displayWidth;
         int screenHeight = mc.displayHeight;
 
