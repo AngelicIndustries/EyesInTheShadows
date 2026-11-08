@@ -9,7 +9,7 @@ The days as Halloween draws closer, it weakens down even further.
 [![hub](images/badges/github.png)](https://github.com/JackOfNoneTrades/EyesInTheShadows/releases)
 [![modrinth](images/badges/modrinth.png)](https://modrinth.com/mod/eyes-in-the-shadows)
 [![curse](images/badges/curse.png)](https://www.curseforge.com/minecraft/mc-mods/eyes-in-the-shadows)
-[![maven](images/badges/maven.png)](https://maven.fentanylsolutions.org/#/releases/org/fentanylsolutions/eyesintheshadows/EyesInTheShadows)
+[![maven](images/badges/maven.png)](https://maven.angelic.industries/#/releases/org/fentanylsolutions/eyesintheshadows/EyesInTheShadows)
 ![forge](images/badges/forge.png)
 [![cord](images/badges/cord.png)](https://discord.gg/xAWCqGrguG)
 

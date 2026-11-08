@@ -48,7 +48,7 @@ dependencies {
         "org.fentanylsolutions.vintagedamageindicators:VintageDamageIndicators:0.9.4:dev")
     runtimeOnlyNonPublishable("org.fentanylsolutions.wawelauth:WawelAuth:1.0.4:dev")
     runtimeOnlyNonPublishable(rfg.deobf("curse.maven:catalogue-vintage-1465746:8384975")) // 1.0.8-1.7.10
-    runtimeOnlyNonPublishable("org.fentanylsolutions.fentlib:FentLib:0.0.54:dev")
+    runtimeOnlyNonPublishable("industries.angelic.angellib:AngelLib:1.0.0:dev")
 
     runtimeOnlyNonPublishable(rfg.deobf("curse.maven:skinport-234948:3212017"))
 
