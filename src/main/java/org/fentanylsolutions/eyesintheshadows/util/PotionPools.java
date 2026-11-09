@@ -19,7 +19,8 @@ import org.fentanylsolutions.eyesintheshadows.EyesInTheShadows;
  *
  * <p>
  * A rule reads {@code event@place=effects} to replace the pool there, or {@code event@place+=effects} to add to it.
- * The place is a dimension name, or {@code biome:} and a biome name. Effects are potion names, each optionally with
+ * The place is a dimension (name or ID), or {@code biome:} and a biome name. Effects are potion names, each optionally
+ * with
  * its own duration in seconds and amplifier ({@code potion.wither:8:1}); {@code none} draws no effect, which lowers the
  * odds of the others.
  */
@@ -50,10 +51,11 @@ public final class PotionPools {
         List<Entry> entries = new ArrayList<>();
         for (Potion potion : pool) entries.add(new Entry(potion.getName(), -1, -1));
         World world = target.worldObj;
-        String dimension = world.provider != null ? world.provider.getDimensionName() : "";
         BiomeGenBase biome = world
             .getBiomeGenForCoords(MathHelper.floor_double(target.posX), MathHelper.floor_double(target.posZ));
-        for (Rule rule : RULES) if (rule.matches(event, false, dimension)) rule.applyTo(entries);
+        for (Rule rule : RULES) {
+            if (!rule.biome && rule.event.equals(event) && Util.isDimension(world, rule.place)) rule.applyTo(entries);
+        }
         if (biome != null)
             for (Rule rule : RULES) if (rule.matches(event, true, biome.biomeName)) rule.applyTo(entries);
         if (entries.isEmpty()) return;

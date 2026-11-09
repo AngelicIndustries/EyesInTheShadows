@@ -95,7 +95,7 @@ public class JumpscareOverlay extends Gui implements IResourceManagerReloadListe
                     new ResourceLocation(
                         glitched ? EyesInTheShadows.varInstanceCommon.glitchedJumpScareSound
                             : EyesInTheShadows.varInstanceCommon.jumpScareSound),
-                    Config.eyeJumpscareVolume));
+                    glitched ? Config.glitchedJumpscareVolume : Config.jumpscareVolume));
     }
 
     /**
@@ -116,7 +116,8 @@ public class JumpscareOverlay extends Gui implements IResourceManagerReloadListe
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        if (visible) {
+        // It waits while the game is paused
+        if (visible && !mc.isGamePaused()) {
             progress++;
             if (progress >= total) {
                 visible = false;
@@ -137,10 +138,13 @@ public class JumpscareOverlay extends Gui implements IResourceManagerReloadListe
         }
     }
 
-    /** Drawn last in the frame, over anything else a mod draws on the screen. */
+    /**
+     * Drawn last in the frame, over anything else a mod draws on the screen, but not over a menu or the inventory: with
+     * one open, the jumpscare isn't drawn.
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void render(TickEvent.RenderTickEvent event) {
-        if (!visible || event.phase != TickEvent.Phase.END || mc.theWorld == null) {
+        if (!visible || event.phase != TickEvent.Phase.END || mc.theWorld == null || mc.currentScreen != null) {
             return;
         }
 

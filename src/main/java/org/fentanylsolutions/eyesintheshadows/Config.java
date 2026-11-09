@@ -118,9 +118,14 @@ public class Config {
         public static final float waveMotionMaxSpeed = 0.2f;
 
         /* sound_volumes */
-        public static final float eyeIdleVolume = 1;
-        public static final float eyeDisappearVolume = 1;
-        public static final float eyeJumpscareVolume = 1;
+        /* Each sound's share of its file's loudness, bringing the eyes in line with vanilla's mobs */
+        public static final float laughVolume = 0.6F;
+        public static final float disappearVolume = 0.6F;
+        public static final float jumpscareVolume = 1;
+        public static final float glitchedLaughVolume = 0.5F;
+        public static final float glitchedWhisperVolume = 0.5F;
+        public static final float glitchedDisappearVolume = 0.5F;
+        public static final float glitchedJumpscareVolume = 0.6F;
     }
 
     public static class Categories {
@@ -192,9 +197,13 @@ public class Config {
     public static int maxSpawnLightLevel = Defaults.maxSpawnLightLevel;
 
     /* sounds */
-    public static float eyeIdleVolume = Defaults.eyeIdleVolume;
-    public static float eyeDisappearVolume = Defaults.eyeDisappearVolume;
-    public static float eyeJumpscareVolume = Defaults.eyeJumpscareVolume;
+    public static float laughVolume = Defaults.laughVolume;
+    public static float disappearVolume = Defaults.disappearVolume;
+    public static float jumpscareVolume = Defaults.jumpscareVolume;
+    public static float glitchedLaughVolume = Defaults.glitchedLaughVolume;
+    public static float glitchedWhisperVolume = Defaults.glitchedWhisperVolume;
+    public static float glitchedDisappearVolume = Defaults.glitchedDisappearVolume;
+    public static float glitchedJumpscareVolume = Defaults.glitchedJumpscareVolume;
 
     /* misc */
     public static int blinkDuration = Defaults.blinkDuration;
@@ -297,40 +306,54 @@ public class Config {
                 Categories.visual,
                 "white_eye_dimensions",
                 Defaults.whiteEyeDimensions,
-                "Dimensions where the eyes are white instead of yellow. They still turn red as they grow aggressive. Dimensional Doors' Limbo has them.");
+                "Dimensions (by name or ID, as printDimensions lists them) where the eyes are white instead of yellow. They still turn red as they grow aggressive. Dimensional Doors' Limbo has them.");
             whiteEyeDimensions = whiteEyeDimensionsProperty.getStringList();
 
-            /* Sound */
-            Property eyeIdleVolumeProperty = config.get(
-                Categories.sound_volumes,
-                "eyeIdleVolume",
-                Defaults.eyeIdleVolume,
-                "Eye idle sound volume, as each player sets it.",
-                0,
-                Float.MAX_VALUE);
-            eyeIdleVolume = (float) eyeIdleVolumeProperty.getDouble();
-
-            Property eyeDisappearVolumeProperty = config.get(
-                Categories.sound_volumes,
-                "eyeDisappearVolume",
-                Defaults.eyeDisappearVolume,
-                "Eye disappearing sound volume, as each player sets it.",
-                0,
-                Float.MAX_VALUE);
-            eyeDisappearVolume = (float) eyeDisappearVolumeProperty.getDouble();
-
-            Property eyeJumpscareVolumeProperty = config.get(
-                Categories.sound_volumes,
-                "eyeJumpscareVolume",
-                Defaults.eyeJumpscareVolume,
-                "Jumpscare sound volume.",
-                0,
-                Float.MAX_VALUE);
-            eyeJumpscareVolume = (float) eyeJumpscareVolumeProperty.getDouble();
+            /* Sound: each player's own volumes */
+            laughVolume = volume("laughVolume", Defaults.laughVolume, "The eyes' giggling.");
+            disappearVolume = volume("disappearVolume", Defaults.disappearVolume, "The screech of an eye vanishing.");
+            jumpscareVolume = volume("jumpscareVolume", Defaults.jumpscareVolume, "The jumpscare's screech.");
+            glitchedLaughVolume = volume(
+                "glitchedLaughVolume",
+                Defaults.glitchedLaughVolume,
+                "The laughs and giggles of glitched eyes (glitchedDimensions).");
+            glitchedWhisperVolume = volume(
+                "glitchedWhisperVolume",
+                Defaults.glitchedWhisperVolume,
+                "The whispers of glitched eyes.");
+            glitchedDisappearVolume = volume(
+                "glitchedDisappearVolume",
+                Defaults.glitchedDisappearVolume,
+                "The sighs and gasps of glitched eyes vanishing.");
+            glitchedJumpscareVolume = volume(
+                "glitchedJumpscareVolume",
+                Defaults.glitchedJumpscareVolume,
+                "The jumpscare's sound where the eyes are glitched.");
+            // Replaced by the above, under new names so that their quieter defaults reach old configs
+            for (String old : new String[] { "eyeIdleVolume", "eyeDisappearVolume", "eyeJumpscareVolume" }) {
+                config.getCategory(Categories.sound_volumes)
+                    .remove(old);
+            }
         }
         if (config.hasChanged()) {
             config.save();
         }
+    }
+
+    /**
+     * A sound's volume slider: its share of the sound file's full loudness, from 0 to 1. The defaults bring the eyes in
+     * line with vanilla's mobs; the sounds also follow the Hostile Creatures volume.
+     */
+    private static float volume(String name, float fallback, String comment) {
+        Property property = config.get(
+            Categories.sound_volumes,
+            name,
+            fallback,
+            comment + " From 0 (silent) to 1 (the sound's full loudness). Each player sets their own.",
+            0,
+            1);
+        property.setConfigEntryClass(GuiConfigEntries.NumberSliderEntry.class);
+        return (float) property.getDouble();
     }
 
     public static void synchronizeConfigurationServer(File configFile, boolean force) {
@@ -368,7 +391,7 @@ public class Config {
             Categories.general,
             "placeRestrictions",
             Defaults.placeRestrictions,
-            "What the eyes may not do to players in some places, one place per line as place=what. The place is a dimension name (printDimensions lists them), or biome: and a biome name, for the biome the player stands in. What is any of jumpscare (no jumpscare screen, sound or its potion effect), hurt (no damage) and approach (they never creep up on the player, only watch), separated by commas, like Overworld=jumpscare,hurt. An eye that reaches a player it may neither jumpscare nor hurt just vanishes. Potion effects on touching and looking at eyes follow potionPoolRules.");
+            "What the eyes may not do to players in some places, one place per line as place=what. The place is a dimension, by name or ID (printDimensions lists both), or biome: and a biome name, for the biome the player stands in. What is any of jumpscare (no jumpscare screen, sound or its potion effect), hurt (no damage) and approach (they never creep up on the player, only watch), separated by commas, like Overworld=jumpscare,hurt. An eye that reaches a player it may neither jumpscare nor hurt just vanishes. Potion effects on touching and looking at eyes follow potionPoolRules.");
         placeRestrictions = placeRestrictionsProperty.getStringList();
         Restrictions.load(placeRestrictions);
 
@@ -474,7 +497,7 @@ public class Config {
             Categories.potion,
             "potionPoolRules",
             Defaults.potionPoolRules,
-            "Changes to the potion effect pools by dimension and biome, one rule per line: event@place=effects replaces the pool there, event@place+=effects adds to it. The event is attack (the jumpscare, potionNames), collision (potionCollisionNames) or look (potionLookNames). The place is a dimension name (printDimensions lists them) or biome: and a biome name; biome rules apply after dimension rules. Effects are potion names separated by commas, each optionally with its own duration in seconds and amplifier (potion.wither:8:1); none draws no effect, which lowers the odds of the others. One effect is drawn from the pool each time. By default the jumpscare in Dimensional Doors' Limbo can also wither or blind.");
+            "Changes to the potion effect pools by dimension and biome, one rule per line: event@place=effects replaces the pool there, event@place+=effects adds to it. The event is attack (the jumpscare, potionNames), collision (potionCollisionNames) or look (potionLookNames). The place is a dimension, by name or ID (printDimensions lists both), or biome: and a biome name; biome rules apply after dimension rules. Effects are potion names separated by commas, each optionally with its own duration in seconds and amplifier (potion.wither:8:1); none draws no effect, which lowers the odds of the others. One effect is drawn from the pool each time. By default the jumpscare in Dimensional Doors' Limbo can also wither or blind.");
         potionPoolRules = potionPoolRulesProperty.getStringList();
         PotionPools.load(potionPoolRules);
 
@@ -547,7 +570,7 @@ public class Config {
             Categories.eye_aggression,
             "dimensionAggroMultipliers",
             Defaults.dimensionAggroMultipliers,
-            "Dimensions where the eyes grow aggressive faster, as name=multiplier on aggroEscalationPerTick. In Dimensional Doors' Limbo they turn red within seconds.");
+            "Dimensions where the eyes grow aggressive faster, as dimension=multiplier (by name or ID) on aggroEscalationPerTick. In Dimensional Doors' Limbo they turn red within seconds.");
         dimensionAggroMultipliers = dimensionAggroMultipliersProperty.getStringList();
 
         // Gone: an eye vanishes after attacking, so there was never a next attack to wait for
@@ -607,29 +630,32 @@ public class Config {
             "Whether the biome list acts as a white or blacklist.");
         biomeListIsWhitelist = biomeListIsWhitelistProperty.getBoolean();
 
-        Property dimensionSpawnNamesProperty = config
-            .get(Categories.spawning, "dimensionSpawnNames", Defaults.dimensionSpawnNames, "List of dimensions.");
+        Property dimensionSpawnNamesProperty = config.get(
+            Categories.spawning,
+            "dimensionSpawnNames",
+            Defaults.dimensionSpawnNames,
+            "List of dimensions, by name or ID, as printDimensions lists them.");
         dimensionSpawnNames = dimensionSpawnNamesProperty.getStringList();
 
         Property dimensionEyeMultipliersProperty = config.get(
             Categories.spawning,
             "dimensionEyeMultipliers",
             Defaults.dimensionEyeMultipliers,
-            "Dimensions with more (or fewer) eyes, as name=multiplier: it multiplies how often eyes spawn there and how many there are around each player and in the whole dimension. Dimensional Doors' Limbo has ten times as many.");
+            "Dimensions with more (or fewer) eyes, as dimension=multiplier (by name or ID): it multiplies how often eyes spawn there and how many there are around each player and in the whole dimension. Dimensional Doors' Limbo has ten times as many.");
         dimensionEyeMultipliers = dimensionEyeMultipliersProperty.getStringList();
 
         Property glitchedDimensionsProperty = config.get(
             Categories.general,
             "glitchedDimensions",
             Defaults.glitchedDimensions,
-            "Dimensions where the eyes are glitched: they tear sideways and flicker for as long as they make a sound, go out in a glitch, mostly whisper, giggle now and then, have their own disappearing and jumpscare sounds, and their jumpscare glitches the screen. Dimensional Doors' Limbo has them.");
+            "Dimensions (by name or ID) where the eyes are glitched: they tear sideways and flicker for as long as they make a sound, go out in a glitch, mostly whisper, giggle now and then, have their own disappearing and jumpscare sounds, and their jumpscare glitches the screen. Dimensional Doors' Limbo has them.");
         glitchedDimensions = glitchedDimensionsProperty.getStringList();
 
         Property alwaysDarkDimensionsProperty = config.get(
             Categories.general,
             "alwaysDarkDimensions",
             Defaults.alwaysDarkDimensions,
-            "Dimensions where daylight never shows: the eyes there are out, spawn and can attack at any hour, only lights keep them away. Dimensional Doors' Limbo keeps the Overworld's clock under a black sky.");
+            "Dimensions (by name or ID) where daylight never shows: the eyes there are out, spawn and can attack at any hour, only lights keep them away. Dimensional Doors' Limbo keeps the Overworld's clock under a black sky.");
         alwaysDarkDimensions = alwaysDarkDimensionsProperty.getStringList();
 
         Property idleSoundIntervalProperty = config.get(
@@ -770,7 +796,7 @@ public class Config {
             Categories.misc,
             "printDimensions",
             Defaults.printDimensions,
-            "If set to true, print a list of dimension names on game post init.");
+            "If set to true, print every registered dimension's name and ID on game post init. Dimension lists take either.");
         printDimensions = printDimensionsProperty.getBoolean();
 
         Property printBiomesProperty = config.get(

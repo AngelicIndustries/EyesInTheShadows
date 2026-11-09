@@ -87,7 +87,7 @@ public class VarInstanceCommon {
         for (String s : Config.dimensionSpawnNames) {
             DimensionUtil.SimpleDimensionObj sdo = DimensionUtil.getSimpleDimensionObj(s);
             if (sdo == null) {
-                EyesInTheShadows.LOG.error("Failed to get dimension for name " + s);
+                EyesInTheShadows.LOG.error("Failed to get dimension for name or ID " + s);
             } else {
                 dimensionList.put(sdo.getName(), sdo);
             }

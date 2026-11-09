@@ -556,7 +556,7 @@ public class EntityEyes extends EntityFlying implements IModEntity {
         this.setHealth(1);
         damageEntity(DamageSource.outOfWorld, 1);
         if (playDeathSound) {
-            // Each client scales it by its own eyeDisappearVolume (SoundingEyes)
+            // Each client scales it by its own disappear volume (SoundingEyes)
             this.playSound(getDeathSound(), 1.0F, this.getSoundPitch());
         }
     }

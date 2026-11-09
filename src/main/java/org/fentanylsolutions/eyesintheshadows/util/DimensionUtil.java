@@ -1,6 +1,11 @@
 package org.fentanylsolutions.eyesintheshadows.util;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import net.minecraft.world.WorldProvider;
+import net.minecraftforge.common.DimensionManager;
 
 import org.fentanylsolutions.eyesintheshadows.EyesInTheShadows;
 
@@ -31,76 +36,37 @@ public class DimensionUtil {
         }
     }
 
-    public static SimpleDimensionObj getSimpleDimensionObj(String name) {
-        if (EyesInTheShadows.varInstanceCommon.providers == null) {
-            return null;
-        }
-        for (int i : EyesInTheShadows.varInstanceCommon.providers.keySet()) {
-            WorldProvider worldProvider = null;
+    /**
+     * Every registered dimension with its real ID and name, as the config's dimension entries take them. A provider is
+     * made per ID, since some (such as Dimensional Doors' pockets) name themselves by their ID.
+     */
+    public static List<SimpleDimensionObj> registeredDimensions() {
+        List<SimpleDimensionObj> dimensions = new ArrayList<>();
+        for (Integer id : DimensionManager.getStaticDimensionIDs()) {
             try {
-                if (EyesInTheShadows.varInstanceCommon.providers.get(i) != null) {
-                    worldProvider = EyesInTheShadows.varInstanceCommon.providers.get(i)
-                        .newInstance();
-                }
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-            if (worldProvider == null) {
-                continue;
-            }
-            if (name.equals(worldProvider.getDimensionName())) {
-                return new SimpleDimensionObj(
-                    worldProvider.dimensionId,
-                    worldProvider.getDimensionName(),
-                    worldProvider.getDepartMessage());
+                WorldProvider provider = DimensionManager.createProviderFor(id);
+                dimensions.add(new SimpleDimensionObj(id, provider.getDimensionName(), provider.getDepartMessage()));
+            } catch (RuntimeException e) {
+                dimensions.add(new SimpleDimensionObj(id, "?", null));
             }
         }
-        return null;
+        dimensions.sort(Comparator.comparingInt(SimpleDimensionObj::getId));
+        return dimensions;
     }
 
-    public static SimpleDimensionObj getSimpleDimensionObj(int id) {
-        if (EyesInTheShadows.varInstanceCommon.providers == null) {
-            return null;
-        }
-        for (int i : EyesInTheShadows.varInstanceCommon.providers.keySet()) {
-            WorldProvider worldProvider = null;
-            try {
-                if (EyesInTheShadows.varInstanceCommon.providers.get(i) != null) {
-                    worldProvider = EyesInTheShadows.varInstanceCommon.providers.get(i)
-                        .newInstance();
-                }
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-            if (worldProvider == null) {
-                continue;
-            }
-            if (worldProvider.dimensionId == id) {
-                return new SimpleDimensionObj(
-                    worldProvider.dimensionId,
-                    worldProvider.getDimensionName(),
-                    worldProvider.getDepartMessage());
-            }
+    /** The registered dimension a config entry stands for, by name or ID, or null. */
+    public static SimpleDimensionObj getSimpleDimensionObj(String entry) {
+        String key = entry.trim();
+        for (SimpleDimensionObj dimension : registeredDimensions()) {
+            if (key.equals(dimension.getName()) || key.equals(String.valueOf(dimension.getId()))) return dimension;
         }
         return null;
     }
 
     public static void printDimensionNames() {
         EyesInTheShadows.LOG.info("=========Dimension List=========");
-        for (int i : EyesInTheShadows.varInstanceCommon.providers.keySet()) {
-            WorldProvider worldProvider = null;
-            try {
-                if (EyesInTheShadows.varInstanceCommon.providers.get(i) != null) {
-                    worldProvider = EyesInTheShadows.varInstanceCommon.providers.get(i)
-                        .newInstance();
-                }
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-            if (worldProvider == null) {
-                continue;
-            }
-            EyesInTheShadows.LOG.info("{} ({})", worldProvider.getDimensionName(), worldProvider.dimensionId);
+        for (SimpleDimensionObj dimension : registeredDimensions()) {
+            EyesInTheShadows.LOG.info("{} ({})", dimension.getName(), dimension.getId());
         }
         EyesInTheShadows.LOG.info("=============================");
     }

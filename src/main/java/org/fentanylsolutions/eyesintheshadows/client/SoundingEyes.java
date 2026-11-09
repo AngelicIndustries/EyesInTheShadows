@@ -96,13 +96,16 @@ public final class SoundingEyes {
         }
     }
 
-    /** The sound at this player's volume for its kind: vanishing or idle. The jumpscare sets its own. */
+    /** The sound at this player's volume for it (Config's sound volumes). The jumpscare sets its own. */
     private static ISound scaled(ISound sound) {
         String path = sound.getPositionedSoundLocation()
             .getResourcePath();
         float volume;
-        if (path.endsWith(".disappear")) volume = Config.eyeDisappearVolume;
-        else if (path.endsWith(".laugh") || path.endsWith(".whisper")) volume = Config.eyeIdleVolume;
+        if (path.endsWith(".glitched.laugh")) volume = Config.glitchedLaughVolume;
+        else if (path.endsWith(".glitched.whisper")) volume = Config.glitchedWhisperVolume;
+        else if (path.endsWith(".glitched.disappear")) volume = Config.glitchedDisappearVolume;
+        else if (path.endsWith(".laugh")) volume = Config.laughVolume;
+        else if (path.endsWith(".disappear")) volume = Config.disappearVolume;
         else return sound;
         if (volume == 1.0F) return sound;
         return new PositionedSoundRecord(

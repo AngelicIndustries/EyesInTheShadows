@@ -12,8 +12,8 @@ import net.minecraft.world.biome.BiomeGenBase;
 import org.fentanylsolutions.eyesintheshadows.EyesInTheShadows;
 
 /**
- * What the eyes may not do to players in some places, from the config: place=what, the place a dimension name or
- * biome: and a biome name (the biome the player stands in), what any of jumpscare, hurt and approach.
+ * What the eyes may not do to players in some places, from the config: place=what, the place a dimension (name or ID)
+ * or biome: and a biome name (the biome the player stands in), what any of jumpscare, hurt and approach.
  */
 public final class Restrictions {
 
@@ -52,7 +52,6 @@ public final class Restrictions {
     public static boolean blocks(String behavior, Entity player) {
         if (RULES.isEmpty()) return false;
         World world = player.worldObj;
-        String dimension = world.provider != null ? world.provider.getDimensionName() : "";
         BiomeGenBase biome = null;
         for (Rule rule : RULES) {
             if (!rule.blocked.contains(behavior)) continue;
@@ -63,7 +62,7 @@ public final class Restrictions {
                     rule.place.substring(BIOME.length())
                         .trim()))
                     return true;
-            } else if (rule.place.equals(dimension)) {
+            } else if (Util.isDimension(world, rule.place)) {
                 return true;
             }
         }

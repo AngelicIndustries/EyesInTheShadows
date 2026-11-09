@@ -150,24 +150,34 @@ public class Util {
         return Math.max(blockLight, DynamicLightApproximation.getBrightness(world, x, y, z));
     }
 
-    /** Whether this dimension's name is in a list of dimension names. */
-    public static boolean isDimensionListed(World world, String[] names) {
-        String dimensionName = world.provider != null ? world.provider.getDimensionName() : "";
-        for (String name : names) {
-            if (name.trim()
-                .equals(dimensionName)) return true;
+    /**
+     * Whether a config entry stands for this world's dimension: its name, as printDimensions lists it, or its numeric
+     * ID.
+     */
+    public static boolean isDimension(World world, String entry) {
+        if (world.provider == null) return false;
+        String key = entry.trim();
+        if (key.equals(world.provider.getDimensionName())) return true;
+        try {
+            return Integer.parseInt(key) == world.provider.dimensionId;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    /** Whether this dimension is in a list of dimension names or IDs. */
+    public static boolean isDimensionListed(World world, String[] dimensions) {
+        for (String dimension : dimensions) {
+            if (isDimension(world, dimension)) return true;
         }
         return false;
     }
 
-    /** This dimension's value in a list of name=value entries, or the fallback when it isn't listed. */
+    /** This dimension's value in a list of dimension=value entries (by name or ID), or the fallback. */
     public static float getDimensionValue(World world, String[] entries, float fallback) {
-        String dimensionName = world.provider != null ? world.provider.getDimensionName() : "";
         for (String entry : entries) {
             int split = entry.indexOf('=');
-            if (split <= 0 || !entry.substring(0, split)
-                .trim()
-                .equals(dimensionName)) continue;
+            if (split <= 0 || !isDimension(world, entry.substring(0, split))) continue;
             try {
                 return Float.parseFloat(
                     entry.substring(split + 1)

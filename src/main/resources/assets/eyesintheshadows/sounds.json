@@ -1,6 +1,6 @@
 {
   "mob.eyes.laugh": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       "tickle1",
       "tickle2",
@@ -10,21 +10,21 @@
   },
 
   "mob.eyes.disappear": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       "screech"
     ]
   },
 
   "mob.eyes.jumpscare": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       {"name": "screech2", "volume": 0.25}
     ]
   },
 
   "mob.eyes.glitched.laugh": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       "glitched/laugh1",
       "glitched/laugh2",
@@ -39,7 +39,7 @@
   },
 
   "mob.eyes.glitched.whisper": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       {"name": "glitched/whisper1", "pitch": 1.8},
       {"name": "glitched/whisper2", "pitch": 1.3}
@@ -47,7 +47,7 @@
   },
 
   "mob.eyes.glitched.disappear": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       "glitched/disappear",
       "glitched/disappear_breath_og",
@@ -66,7 +66,7 @@
   },
 
   "mob.eyes.glitched.jumpscare": {
-    "category": "neutral",
+    "category": "hostile",
     "sounds": [
       "glitched/jumpscare1",
       {"name": "glitched/jumpscare2", "pitch": 1.19},
