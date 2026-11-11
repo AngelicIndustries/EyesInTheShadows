@@ -128,12 +128,12 @@ public class JumpscareOverlay extends Gui implements IResourceManagerReloadListe
 
     /**
      * No HUD during the jumpscare: cancelling the whole of it first skips vanilla's and every overlay drawn with it,
-     * such
-     * as Better Sleeping's.
+     * such as Better Sleeping's. Not with a menu or the inventory open, which the jumpscare leaves alone: cancelling it
+     * also skips setting the screen up for 2D, and the menu was then drawn with the world's camera, out of sight.
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void hideHud(RenderGameOverlayEvent.Pre event) {
-        if (visible && event.type == RenderGameOverlayEvent.ElementType.ALL) {
+        if (visible && mc.currentScreen == null && event.type == RenderGameOverlayEvent.ElementType.ALL) {
             event.setCanceled(true);
         }
     }
