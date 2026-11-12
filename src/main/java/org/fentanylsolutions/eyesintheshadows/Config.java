@@ -73,18 +73,18 @@ public class Config {
         public static final int spawnCycleIntervalHalloween = 50;
         public static final int maxEyesAroundPlayerHalloween = 5;
         public static final int maxTotalEyesPerDimensionHalloween = 25;
-        public static final float maxEyesSpawnDistance = 64;
+        public static final double maxEyesSpawnDistance = 64;
         public static final boolean spawnUnderCover = false;
         public static final int maxSpawnLightLevel = 15;
 
         /* misc */
-        public static final float aggroEscalationPerTick = 1f / (20 * 60 * 5);
+        public static final double aggroEscalationPerTick = 1.0 / (20 * 60 * 5);
         public static final String[] dimensionAggroMultipliers = { "Limbo=60" };
         public static final int blinkDuration = 5;
-        public static final float blinkChance = 0.02F;
+        public static final double blinkChance = 0.02;
         public static final int health = 1;
-        public static final float scaleFactor = 1F;
-        public static final float eyeGlowStrength = 1.3F;
+        public static final double scaleFactor = 1;
+        public static final double eyeGlowStrength = 1.3;
         public static final double jumpscareSeconds = 10;
         public static final boolean jumpscareEyes = true;
         public static final boolean jumpscareCreature = true;
@@ -94,12 +94,12 @@ public class Config {
         public static final String[] alwaysDarkDimensions = { "Limbo" };
         public static final int idleSoundInterval = 130;
         public static final boolean enableDynamicLightApproximation = true;
-        public static final float eyeArtificialLightSensitivityOpenSky = 1.25F;
-        public static final float eyeArtificialLightSensitivityCovered = 1.45F;
+        public static final double eyeArtificialLightSensitivityOpenSky = 1.25;
+        public static final double eyeArtificialLightSensitivityCovered = 1.45;
         public static final boolean eyesAttackTamedWolves = false;
         public static final boolean wolvesAttackEyes = true;
         public static final boolean mobsAttackDormantEyes = false;
-        public static final float watchDistance = 16F;
+        public static final double watchDistance = 16;
         public static final boolean eyesWander = true;
         public static final boolean printPotions = false;
         public static final boolean printMobs = false;
@@ -110,22 +110,22 @@ public class Config {
         public static final String[] mobStringsFleeingEyes = { "SnowMan", "Villager" };
         public static final String[] mobStringsThatEyesFlee = { "Ozelot" };
         public static final boolean mobsFleeDormantEyes = false;
-        public static final float damageFromWet = 0;
+        public static final double damageFromWet = 0;
         public static final int spawnCycleSpawnWarningTime = 200;
-        public static final float waveMotionMinAmplitude = 0.03f;
-        public static final float waveMotionMaxAmplitude = 0.1f;
-        public static final float waveMotionMinSpeed = 0.05f;
-        public static final float waveMotionMaxSpeed = 0.2f;
+        public static final double waveMotionMinAmplitude = 0.03;
+        public static final double waveMotionMaxAmplitude = 0.1;
+        public static final double waveMotionMinSpeed = 0.05;
+        public static final double waveMotionMaxSpeed = 0.2;
 
         /* sound_volumes */
         /* Each sound's share of its file's loudness, bringing the eyes in line with vanilla's mobs */
-        public static final float laughVolume = 0.6F;
-        public static final float disappearVolume = 0.6F;
-        public static final float jumpscareVolume = 1;
-        public static final float glitchedLaughVolume = 0.5F;
-        public static final float glitchedWhisperVolume = 0.5F;
-        public static final float glitchedDisappearVolume = 0.5F;
-        public static final float glitchedJumpscareVolume = 0.6F;
+        public static final double laughVolume = 0.6;
+        public static final double disappearVolume = 0.6;
+        public static final double jumpscareVolume = 1;
+        public static final double glitchedLaughVolume = 0.5;
+        public static final double glitchedWhisperVolume = 0.5;
+        public static final double glitchedDisappearVolume = 0.5;
+        public static final double glitchedJumpscareVolume = 0.6;
     }
 
     public static class Categories {
@@ -167,9 +167,9 @@ public class Config {
     public static boolean changeColorWithAggro = Defaults.changeColorWithAggro;
     public static double speedNoAggro = Defaults.speedNoAggro;
     public static double speedFullAggro = Defaults.speedFullAggro;
-    public static float aggroEscalationPerTick = Defaults.aggroEscalationPerTick;
+    public static float aggroEscalationPerTick = (float) Defaults.aggroEscalationPerTick;
     public static String[] dimensionAggroMultipliers = Defaults.dimensionAggroMultipliers;
-    public static float watchDistance = Defaults.watchDistance;
+    public static float watchDistance = (float) Defaults.watchDistance;
     public static double eyeBaseAttackDamage = Defaults.eyeBaseAttackDamage;
     public static boolean fly = true;
 
@@ -197,20 +197,20 @@ public class Config {
     public static int maxSpawnLightLevel = Defaults.maxSpawnLightLevel;
 
     /* sounds */
-    public static float laughVolume = Defaults.laughVolume;
-    public static float disappearVolume = Defaults.disappearVolume;
-    public static float jumpscareVolume = Defaults.jumpscareVolume;
-    public static float glitchedLaughVolume = Defaults.glitchedLaughVolume;
-    public static float glitchedWhisperVolume = Defaults.glitchedWhisperVolume;
-    public static float glitchedDisappearVolume = Defaults.glitchedDisappearVolume;
-    public static float glitchedJumpscareVolume = Defaults.glitchedJumpscareVolume;
+    public static float laughVolume = (float) Defaults.laughVolume;
+    public static float disappearVolume = (float) Defaults.disappearVolume;
+    public static float jumpscareVolume = (float) Defaults.jumpscareVolume;
+    public static float glitchedLaughVolume = (float) Defaults.glitchedLaughVolume;
+    public static float glitchedWhisperVolume = (float) Defaults.glitchedWhisperVolume;
+    public static float glitchedDisappearVolume = (float) Defaults.glitchedDisappearVolume;
+    public static float glitchedJumpscareVolume = (float) Defaults.glitchedJumpscareVolume;
 
     /* misc */
     public static int blinkDuration = Defaults.blinkDuration;
-    public static float blinkChance = Defaults.blinkChance;
+    public static float blinkChance = (float) Defaults.blinkChance;
     public static int health = Defaults.health;
-    public static float scaleFactor = Defaults.scaleFactor;
-    public static float eyeGlowStrength = Defaults.eyeGlowStrength;
+    public static float scaleFactor = (float) Defaults.scaleFactor;
+    public static float eyeGlowStrength = (float) Defaults.eyeGlowStrength;
     public static double jumpscareSeconds = Defaults.jumpscareSeconds;
     public static boolean jumpscareEyes = Defaults.jumpscareEyes;
     public static boolean jumpscareCreature = Defaults.jumpscareCreature;
@@ -220,8 +220,8 @@ public class Config {
     public static String[] alwaysDarkDimensions = Defaults.alwaysDarkDimensions;
     public static int idleSoundInterval = Defaults.idleSoundInterval;
     public static boolean enableDynamicLightApproximation = Defaults.enableDynamicLightApproximation;
-    public static float eyeArtificialLightSensitivityOpenSky = Defaults.eyeArtificialLightSensitivityOpenSky;
-    public static float eyeArtificialLightSensitivityCovered = Defaults.eyeArtificialLightSensitivityCovered;
+    public static float eyeArtificialLightSensitivityOpenSky = (float) Defaults.eyeArtificialLightSensitivityOpenSky;
+    public static float eyeArtificialLightSensitivityCovered = (float) Defaults.eyeArtificialLightSensitivityCovered;
     public static boolean eyesAttackTamedWolves = Defaults.eyesAttackTamedWolves;
     public static boolean wolvesAttackEyes = Defaults.wolvesAttackEyes;
     public static boolean mobsAttackDormantEyes = Defaults.mobsAttackDormantEyes;
@@ -235,12 +235,12 @@ public class Config {
     public static String[] mobStringsFleeingEyes = Defaults.mobStringsFleeingEyes;
     public static String[] mobStringsThatEyesFlee = Defaults.mobStringsThatEyesFlee;
     public static boolean mobsFleeDormantEyes = Defaults.mobsFleeDormantEyes;
-    public static float damageFromWet = Defaults.damageFromWet;
+    public static float damageFromWet = (float) Defaults.damageFromWet;
     public static int spawnCycleSpawnWarningTime = Defaults.spawnCycleSpawnWarningTime;
-    public static float waveMotionMinAmplitude = Defaults.waveMotionMinAmplitude;
-    public static float waveMotionMaxAmplitude = Defaults.waveMotionMaxAmplitude;
-    public static float waveMotionMinSpeed = Defaults.waveMotionMinSpeed;
-    public static float waveMotionMaxSpeed = Defaults.waveMotionMaxSpeed;
+    public static float waveMotionMinAmplitude = (float) Defaults.waveMotionMinAmplitude;
+    public static float waveMotionMaxAmplitude = (float) Defaults.waveMotionMaxAmplitude;
+    public static float waveMotionMinSpeed = (float) Defaults.waveMotionMinSpeed;
+    public static float waveMotionMaxSpeed = (float) Defaults.waveMotionMaxSpeed;
 
     public static void synchronizeConfigurationClient(File configFile, boolean force, boolean load) {
         if (!loaded || force) {
@@ -257,7 +257,7 @@ public class Config {
                 "scale_factor",
                 Defaults.scaleFactor,
                 "Eye size scale factor (purely visual).",
-                0.01F,
+                0.01,
                 Float.MAX_VALUE);
             scaleFactor = (float) scaleFactorProperty.getDouble();
 
@@ -266,8 +266,8 @@ public class Config {
                 "eye_glow_strength",
                 Defaults.eyeGlowStrength,
                 "Emissive glow intensity multiplier for eye rendering.",
-                0F,
-                4F);
+                0,
+                4);
             eyeGlowStrength = (float) eyeGlowStrengthProperty.getDouble();
 
             Property eyeGlowPassesProperty = config.get(
@@ -344,7 +344,7 @@ public class Config {
      * A sound's volume slider: its share of the sound file's full loudness, from 0 to 1. The defaults bring the eyes in
      * line with vanilla's mobs; the sounds also follow the Hostile Creatures volume.
      */
-    private static float volume(String name, float fallback, String comment) {
+    private static float volume(String name, double fallback, String comment) {
         Property property = config.get(
             Categories.sound_volumes,
             name,
