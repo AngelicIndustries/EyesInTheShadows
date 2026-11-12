@@ -84,11 +84,6 @@ public class EntityEyes extends EntityFlying implements IModEntity {
         this.experienceValue = 5;
     }
 
-    @Override
-    public AxisAlignedBB getBoundingBox() {
-        return this.boundingBox;
-    }
-
     public boolean isPlayerLookingInMyGeneralDirection() {
         if (this.getBrightness() <= 0) {
             return false;
@@ -628,7 +623,7 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
     @Override
     public void collideWithNearbyEntities() {
-        /* We need to add 0.2 to Y otherwise we can stand on the mob without triggering a collision */
+        // A little past the eye's own box, so that brushing past it counts as touching it
         List list = this.worldObj.getEntitiesWithinAABBExcludingEntity(
             this,
             this.boundingBox.expand(0.20000000298023224D, 0.2D, 0.20000000298023224D));
