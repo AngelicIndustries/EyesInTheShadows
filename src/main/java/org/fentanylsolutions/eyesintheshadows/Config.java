@@ -590,7 +590,7 @@ public class Config {
             Categories.eye_aggression,
             "fly",
             Defaults.fly,
-            "Allow Eyes to change altitude while pursuing targets.");
+            "Allow Eyes to change altitude, when they chase, flee or wander. Without it they stay at the height they are.");
         fly = flyProperty.getBoolean();
 
         /* spawning */

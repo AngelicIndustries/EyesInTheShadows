@@ -7,6 +7,7 @@ import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 
+import org.fentanylsolutions.eyesintheshadows.Config;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 
 /**
@@ -166,6 +167,10 @@ public class FlyingAIAvoidEntity extends EntityAIBase {
             .nextGaussian() * 2.0 + 2.0;
         dz += this.entity.getRNG()
             .nextGaussian() * 2.0;
+        // Without fly they flee at the height they are
+        if (!Config.fly) {
+            dy = 0;
+        }
 
         double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
         if (length > 0) {

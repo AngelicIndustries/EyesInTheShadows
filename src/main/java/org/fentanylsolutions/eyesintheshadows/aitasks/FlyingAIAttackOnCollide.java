@@ -4,6 +4,8 @@ import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 
+import org.fentanylsolutions.eyesintheshadows.Config;
+
 public class FlyingAIAttackOnCollide extends EntityAIBase {
 
     private final EntityFlying attacker;
@@ -74,7 +76,7 @@ public class FlyingAIAttackOnCollide extends EntityAIBase {
         if (target == null) return;
 
         this.waypointX = target.posX;
-        this.waypointY = target.posY + target.getEyeHeight();
+        this.waypointY = Config.fly ? target.posY + target.getEyeHeight() : this.attacker.posY;
         this.waypointZ = target.posZ;
     }
 

@@ -4,6 +4,7 @@ import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 
+import org.fentanylsolutions.eyesintheshadows.Config;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 
 public class FlyingEyesWander extends EntityAIBase {
@@ -139,7 +140,7 @@ public class FlyingEyesWander extends EntityAIBase {
             double z = this.eyes.posZ + (this.eyes.getRNG()
                 .nextFloat() * 2.0F - 1.0F) * 10.0F;
 
-            double y = this.eyes.posY + 5.0F;
+            double y = Config.fly ? this.eyes.posY + 5.0F : this.eyes.posY;
 
             // Check if the position is in the air (not inside a block)
             /*
