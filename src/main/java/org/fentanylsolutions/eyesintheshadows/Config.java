@@ -497,7 +497,7 @@ public class Config {
             Categories.potion,
             "potionPoolRules",
             Defaults.potionPoolRules,
-            "Changes to the potion effect pools by dimension and biome, one rule per line: event@place=effects replaces the pool there, event@place+=effects adds to it. The event is attack (the jumpscare, potionNames), collision (potionCollisionNames) or look (potionLookNames). The place is a dimension, by name or ID (printDimensions lists both), or biome: and a biome name; biome rules apply after dimension rules. Effects are potion names separated by commas, each optionally with its own duration in seconds and amplifier (potion.wither:8:1); none draws no effect, which lowers the odds of the others. One effect is drawn from the pool each time. By default the jumpscare in Dimensional Doors' Limbo can also wither or blind.");
+            "Changes to the potion effect pools by dimension and biome, one rule per line: event@place=effects replaces the pool there, event@place+=effects adds to it. The event is attack (an eye reaching the player, potionNames), collision (potionCollisionNames) or look (potionLookNames). The place is a dimension, by name or ID (printDimensions lists both), or biome: and a biome name; biome rules apply after dimension rules. Effects are potion names separated by commas, each optionally with its own duration in seconds and amplifier (potion.wither:8:1); none draws no effect, which lowers the odds of the others. One effect is drawn from the pool each time. By default an eye's attack in Dimensional Doors' Limbo can also wither or blind.");
         potionPoolRules = potionPoolRulesProperty.getStringList();
         PotionPools.load(potionPoolRules);
 

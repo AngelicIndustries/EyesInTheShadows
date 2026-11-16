@@ -348,8 +348,8 @@ public class EntityEyes extends EntityFlying implements IModEntity {
     @Override
     public boolean attackEntityAsMob(Entity attackedEntity) {
         boolean player = attackedEntity instanceof EntityPlayerMP;
-        boolean jumpScared = Config.jumpscare && player && !Restrictions.blocks(Restrictions.JUMPSCARE, attackedEntity);
-        if (jumpScared) {
+        // The attack's effect comes with or without the jumpscare
+        if (player) {
             PotionPools.inflict(
                 "attack",
                 (EntityLivingBase) attackedEntity,
@@ -357,6 +357,9 @@ public class EntityEyes extends EntityFlying implements IModEntity {
                 Config.potionDuration,
                 Config.potionAmplifier,
                 EyesInTheShadows.varInstanceCommon.rand);
+        }
+        boolean jumpScared = Config.jumpscare && player && !Restrictions.blocks(Restrictions.JUMPSCARE, attackedEntity);
+        if (jumpScared) {
             jumpscare((EntityPlayerMP) attackedEntity);
             disappear(false);
         }
