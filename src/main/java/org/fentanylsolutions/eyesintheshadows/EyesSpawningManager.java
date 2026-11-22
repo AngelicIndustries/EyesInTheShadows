@@ -216,7 +216,15 @@ public class EyesSpawningManager {
 
     public void spawnOneAround(Vec3 positionVec, EntityPlayer player, float d) {
         float dSqr = d * d;
+        float minD = Math.min(Config.minEyesSpawnDistance, d);
+        float minDSqr = minD * minD;
         int verticalRange = Math.max(8, Math.min(24, (int) d));
+        // Bounds for the ground block; Eyes appear one block above it
+        int lowestY = Math.max(1, Config.minSpawnHeight - 1);
+        int highestY = Math.min(player.worldObj.getHeight() - 2, Config.maxSpawnHeight - 1);
+        if (lowestY > highestY) {
+            return;
+        }
 
         double[] pos = new double[] { 0, 0, 0 };
 
@@ -225,11 +233,18 @@ public class EyesSpawningManager {
             double sY = MathHelper.clamp_int(
                 (int) (positionVec.yCoord
                     + (1 - 2 * EyesInTheShadows.varInstanceCommon.rand.nextFloat()) * verticalRange),
-                1,
-                255);
+                lowestY,
+                highestY);
             double sZ = (1 - 2 * EyesInTheShadows.varInstanceCommon.rand.nextFloat()) * d + positionVec.zCoord;
 
-            int spawnY = findValidSpawnY(player.worldObj, (int) sX, (int) sY, (int) sZ, verticalRange);
+            int spawnY = findValidSpawnY(
+                player.worldObj,
+                (int) sX,
+                (int) sY,
+                (int) sZ,
+                verticalRange,
+                lowestY,
+                highestY);
             if (spawnY < 0) {
                 continue;
             }
@@ -243,7 +258,7 @@ public class EyesSpawningManager {
             double pZ = pos[2] + 0.5D;
 
             double distanceSq = player.getDistanceSq(pX, pY, pZ);
-            if (distanceSq < dSqr && isValidSpawnSpot(player.worldObj, pos, distanceSq)) {
+            if (distanceSq < dSqr && distanceSq >= minDSqr && isValidSpawnSpot(player.worldObj, pos, distanceSq)) {
                 EntityEyes entity = new EntityEyes(player.worldObj);
                 // EyesInTheDarkness.EYES.get().create(player.worldObj, null, null, null, pos, MobSpawnType.NATURAL,
                 // false, false);
@@ -274,9 +289,10 @@ public class EyesSpawningManager {
         }
     }
 
-    private static int findValidSpawnY(World world, int x, int startY, int z, int searchRange) {
-        int minY = Math.max(1, startY - searchRange);
-        int maxY = Math.min(255, startY + searchRange);
+    private static int findValidSpawnY(World world, int x, int startY, int z, int searchRange, int lowestY,
+        int highestY) {
+        int minY = Math.max(lowestY, startY - searchRange);
+        int maxY = Math.min(highestY, startY + searchRange);
 
         // Check the sampled Y first, then alternate up/down to stay near player level.
         if (SpawnerAnimals.canCreatureTypeSpawnAtLocation(EnumCreatureType.monster, world, x, startY, z)) {

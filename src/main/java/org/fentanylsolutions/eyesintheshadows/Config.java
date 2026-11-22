@@ -74,6 +74,9 @@ public class Config {
         public static final int maxEyesAroundPlayerHalloween = 5;
         public static final int maxTotalEyesPerDimensionHalloween = 25;
         public static final double maxEyesSpawnDistance = 64;
+        public static final double minEyesSpawnDistance = 16;
+        public static final int minSpawnHeight = 0;
+        public static final int maxSpawnHeight = 1024;
         public static final boolean spawnUnderCover = false;
         public static final int maxSpawnLightLevel = 15;
 
@@ -193,6 +196,9 @@ public class Config {
     public static int maxEyesAroundPlayerHalloween = Defaults.maxEyesAroundPlayerHalloween;
     public static int maxTotalEyesPerDimensionHalloween = Defaults.maxTotalEyesPerDimensionHalloween;
     public static float maxEyesSpawnDistance = 64;
+    public static float minEyesSpawnDistance = (float) Defaults.minEyesSpawnDistance;
+    public static int minSpawnHeight = Defaults.minSpawnHeight;
+    public static int maxSpawnHeight = Defaults.maxSpawnHeight;
     public static boolean spawnUnderCover = Defaults.spawnUnderCover;
     public static int maxSpawnLightLevel = Defaults.maxSpawnLightLevel;
 
@@ -763,6 +769,33 @@ public class Config {
             1,
             Integer.MAX_VALUE);
         maxEyesSpawnDistance = (float) maxEyesSpawnDistanceProperty.getDouble();
+
+        Property minEyesSpawnDistanceProperty = config.get(
+            Categories.spawning,
+            "minEyesSpawnDistance",
+            Defaults.minEyesSpawnDistance,
+            "Min distance from a player at which Eyes will spawn, so they don't appear right next to them. Capped at maxEyesSpawnDistance.",
+            0,
+            Integer.MAX_VALUE);
+        minEyesSpawnDistance = (float) minEyesSpawnDistanceProperty.getDouble();
+
+        Property minSpawnHeightProperty = config.get(
+            Categories.spawning,
+            "minSpawnHeight",
+            Defaults.minSpawnHeight,
+            "Lowest Y at which Eyes will spawn.",
+            0,
+            Integer.MAX_VALUE);
+        minSpawnHeight = minSpawnHeightProperty.getInt();
+
+        Property maxSpawnHeightProperty = config.get(
+            Categories.spawning,
+            "maxSpawnHeight",
+            Defaults.maxSpawnHeight,
+            "Highest Y at which Eyes will spawn. The default allows any height.",
+            0,
+            Integer.MAX_VALUE);
+        maxSpawnHeight = maxSpawnHeightProperty.getInt();
 
         Property spawnUnderCoverProperty = config
             .get(Categories.spawning, "spawnUnderCover", Defaults.spawnUnderCover, "Spawn only when cannot see sky.");
