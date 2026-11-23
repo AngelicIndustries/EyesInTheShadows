@@ -17,7 +17,8 @@ public class InitiateJumpscarePacket implements IMessageHandler<InitiateJumpscar
         if (ctx.side.isClient()) {
             EyesInTheShadows.debug("Received InitiateJumpscarePacket packet");
             Minecraft.getMinecraft()
-                .func_152344_a(() -> JumpscareOverlay.INSTANCE.show(message.px, message.py, message.pz));
+                .func_152344_a(
+                    () -> JumpscareOverlay.INSTANCE.show(message.px, message.py, message.pz, message.glitched));
         }
         return null;
     }
@@ -27,14 +28,17 @@ public class InitiateJumpscarePacket implements IMessageHandler<InitiateJumpscar
         public double px;
         public double py;
         public double pz;
+        /** Whether the eyes that scare are glitched (Limbo's, or in a glitched dimension). */
+        public boolean glitched;
 
         // this constructor is required otherwise you'll get errors (used somewhere in fml through reflection)
         public SimpleMessage() {}
 
-        public SimpleMessage(double px, double py, double pz) {
+        public SimpleMessage(double px, double py, double pz, boolean glitched) {
             this.px = px;
             this.py = py;
             this.pz = pz;
+            this.glitched = glitched;
         }
 
         @Override
@@ -42,6 +46,7 @@ public class InitiateJumpscarePacket implements IMessageHandler<InitiateJumpscar
             px = buf.readDouble();
             py = buf.readDouble();
             pz = buf.readDouble();
+            glitched = buf.readBoolean();
         }
 
         @Override
@@ -49,6 +54,7 @@ public class InitiateJumpscarePacket implements IMessageHandler<InitiateJumpscar
             buf.writeDouble(px);
             buf.writeDouble(py);
             buf.writeDouble(pz);
+            buf.writeBoolean(glitched);
         }
     }
 }

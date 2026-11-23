@@ -57,6 +57,7 @@ public class Config {
         public static final int despawnAfterAmountOfTicks = 2400;
         public static final boolean enableNaturalSpawn = true;
         public static final String[] biomeSpawnNames = new String[0];
+        public static final String[] dimensionBiomeSpawnNames = new String[0];
         public static final boolean biomeListIsWhitelist = false;
         public static final String[] dimensionSpawnNames = new String[0];
         public static final String[] dimensionEyeMultipliers = { "Limbo=10" };
@@ -94,6 +95,10 @@ public class Config {
         public static final int eyeGlowPasses = 1;
         public static final String[] whiteEyeDimensions = { "Limbo" };
         public static final String[] glitchedDimensions = { "Limbo" };
+        public static final boolean netherEyes = false;
+        public static final boolean eyeJars = false;
+        public static final int jarLightLevel = 6;
+        public static final String[] netherEyeDimensions = { "Nether" };
         public static final String[] alwaysDarkDimensions = { "Limbo" };
         public static final int idleSoundInterval = 130;
         public static final boolean enableDynamicLightApproximation = true;
@@ -182,6 +187,7 @@ public class Config {
     public static int despawnAfterAmountOfTicks = Defaults.despawnAfterAmountOfTicks;
     public static boolean enableNaturalSpawn = Defaults.enableNaturalSpawn;
     public static String[] biomeSpawnNames = Defaults.biomeSpawnNames;
+    public static String[] dimensionBiomeSpawnNames = Defaults.dimensionBiomeSpawnNames;
     public static boolean biomeListIsWhitelist = Defaults.biomeListIsWhitelist;
     public static String[] dimensionSpawnNames = Defaults.dimensionSpawnNames;
     public static String[] dimensionEyeMultipliers = Defaults.dimensionEyeMultipliers;
@@ -223,6 +229,10 @@ public class Config {
     public static int eyeGlowPasses = Defaults.eyeGlowPasses;
     public static String[] whiteEyeDimensions = Defaults.whiteEyeDimensions;
     public static String[] glitchedDimensions = Defaults.glitchedDimensions;
+    public static boolean netherEyes = Defaults.netherEyes;
+    public static boolean eyeJars = Defaults.eyeJars;
+    public static int jarLightLevel = Defaults.jarLightLevel;
+    public static String[] netherEyeDimensions = Defaults.netherEyeDimensions;
     public static String[] alwaysDarkDimensions = Defaults.alwaysDarkDimensions;
     public static int idleSoundInterval = Defaults.idleSoundInterval;
     public static boolean enableDynamicLightApproximation = Defaults.enableDynamicLightApproximation;
@@ -636,6 +646,13 @@ public class Config {
             "Whether the biome list acts as a white or blacklist.");
         biomeListIsWhitelist = biomeListIsWhitelistProperty.getBoolean();
 
+        Property dimensionBiomeSpawnNamesProperty = config.get(
+            Categories.spawning,
+            "dimensionBiomeSpawnNames",
+            Defaults.dimensionBiomeSpawnNames,
+            "The only biomes Eyes spawn in, per dimension, as dimension=biome,biome (dimension by name or ID). Dimensions without an entry follow biomeSpawnNames. With Biomic, the biome is the one where the eyes appear, so its cave biomes count.");
+        dimensionBiomeSpawnNames = dimensionBiomeSpawnNamesProperty.getStringList();
+
         Property dimensionSpawnNamesProperty = config.get(
             Categories.spawning,
             "dimensionSpawnNames",
@@ -656,6 +673,37 @@ public class Config {
             Defaults.glitchedDimensions,
             "Dimensions (by name or ID) where the eyes are glitched: they tear sideways and flicker for as long as they make a sound, go out in a glitch, mostly whisper, giggle now and then, have their own disappearing and jumpscare sounds, and their jumpscare glitches the screen. Dimensional Doors' Limbo has them.");
         glitchedDimensions = glitchedDimensionsProperty.getStringList();
+
+        Property netherEyesProperty = config.get(
+            Categories.general,
+            "netherEyes",
+            Defaults.netherEyes,
+            "Whether the eyes spawning in netherEyeDimensions are Nether eyes, burning soul-fire cyan instead of yellow.");
+        netherEyes = netherEyesProperty.getBoolean();
+
+        Property netherEyeDimensionsProperty = config.get(
+            Categories.general,
+            "netherEyeDimensions",
+            Defaults.netherEyeDimensions,
+            "Dimensions (by name or ID) where the eyes are Nether eyes, when netherEyes is on.");
+        netherEyeDimensions = netherEyeDimensionsProperty.getStringList();
+
+        Property eyeJarsProperty = config.get(
+            Categories.general,
+            "eyeJars",
+            Defaults.eyeJars,
+            "Adds jars for eyes: an empty jar catches eyes while you're invisible, the full jar can be set down or, sneaking, let the eyes out. The server and every client need the same setting; it takes a restart.");
+        eyeJarsProperty.setRequiresMcRestart(true);
+        eyeJars = eyeJarsProperty.getBoolean();
+
+        Property jarLightLevelProperty = config.get(
+            Categories.general,
+            "jarLightLevel",
+            Defaults.jarLightLevel,
+            "The light a jar of eyes gives off once it's set down, colored by the eyes with Supernova. Free eyes fade and keep away from it as from any light.",
+            0,
+            15);
+        jarLightLevel = jarLightLevelProperty.getInt();
 
         Property alwaysDarkDimensionsProperty = config.get(
             Categories.general,

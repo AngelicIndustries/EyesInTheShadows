@@ -2,8 +2,11 @@ package org.fentanylsolutions.eyesintheshadows;
 
 import java.io.File;
 
+import net.minecraft.item.Item;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fentanylsolutions.eyesintheshadows.block.BlockEyeJar;
 import org.fentanylsolutions.eyesintheshadows.varinstances.VarInstanceClient;
 import org.fentanylsolutions.eyesintheshadows.varinstances.VarInstanceCommon;
 import org.fentanylsolutions.eyesintheshadows.varinstances.VarInstanceServer;
@@ -37,6 +40,10 @@ public class EyesInTheShadows {
     public static VarInstanceServer varInstanceServer;
     public static VarInstanceCommon varInstanceCommon;
     private static boolean DEBUG_MODE;
+    public static BlockEyeJar eyesJar;
+    public static Item eyesJarItem;
+    public static Item emptyJar;
+
     public static String rootPath = MODID;
     public static final int maxPngDimension = 2500;
     public static File confFile;

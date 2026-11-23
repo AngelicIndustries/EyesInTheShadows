@@ -48,7 +48,7 @@ public class JumpscareOverlay extends Gui implements IResourceManagerReloadListe
     public static JumpscareOverlay INSTANCE = new JumpscareOverlay();
 
     private boolean visible = false;
-    /** Whether this jumpscare happens where the eyes are glitched (Config.glitchedDimensions). */
+    /** Whether the eyes of this jumpscare are glitched (Limbo's, or in Config.glitchedDimensions). */
     private boolean glitched;
     private float progress = 0;
 
@@ -80,7 +80,14 @@ public class JumpscareOverlay extends Gui implements IResourceManagerReloadListe
         sizes.clear();
     }
 
+    /** A jumpscare by eyes at ex, ey, ez, glitched where they are (in a glitched dimension). */
     public void show(double ex, double ey, double ez) {
+        Minecraft mc = Minecraft.getMinecraft();
+        show(ex, ey, ez, mc.theWorld != null && Util.isDimensionListed(mc.theWorld, Config.glitchedDimensions));
+    }
+
+    /** A jumpscare by eyes at ex, ey, ez; glitched eyes (Limbo's, wherever they are) glitch it. */
+    public void show(double ex, double ey, double ez, boolean glitchedEyes) {
         visible = true;
         progress = 0;
         float length = (float) (Config.jumpscareSeconds * 20);
@@ -88,7 +95,7 @@ public class JumpscareOverlay extends Gui implements IResourceManagerReloadListe
         blinkStart = ANIMATION_APPEAR + rest * LINGER_SHARE;
         scareStart = ANIMATION_APPEAR + rest;
         total = scareStart + ANIMATION_SCARE + ANIMATION_FADE;
-        glitched = mc.theWorld != null && Util.isDimensionListed(mc.theWorld, Config.glitchedDimensions);
+        glitched = glitchedEyes;
         mc.getSoundHandler()
             .playSound(
                 new JumpscareSound(

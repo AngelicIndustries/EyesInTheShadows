@@ -2,18 +2,25 @@ package org.fentanylsolutions.eyesintheshadows;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 
+import org.fentanylsolutions.eyesintheshadows.block.BlockEyeJar;
+import org.fentanylsolutions.eyesintheshadows.block.TileEntityEyeJar;
+import org.fentanylsolutions.eyesintheshadows.client.EyeJarRenderer;
 import org.fentanylsolutions.eyesintheshadows.client.EyesRenderer;
 import org.fentanylsolutions.eyesintheshadows.client.EyesRendererAngelica;
 import org.fentanylsolutions.eyesintheshadows.client.ModelEyes;
 import org.fentanylsolutions.eyesintheshadows.client.SoundingEyes;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 import org.fentanylsolutions.eyesintheshadows.event.ClientEventHandler;
+import org.fentanylsolutions.eyesintheshadows.modcompat.SoundPhysicsCompat;
 import org.fentanylsolutions.eyesintheshadows.varinstances.VarInstanceClient;
 
+import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -54,6 +61,15 @@ public class ClientProxy extends CommonProxy {
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes."
     public void init(FMLInitializationEvent event) {
         super.init(event);
+        if (Config.eyeJars) {
+            EyeJarRenderer jars = new EyeJarRenderer();
+            BlockEyeJar.renderId = RenderingRegistry.getNextAvailableRenderId();
+            RenderingRegistry.registerBlockHandler(BlockEyeJar.renderId, jars);
+            ClientRegistry.bindTileEntitySpecialRenderer(TileEntityEyeJar.class, jars);
+            MinecraftForgeClient.registerItemRenderer(EyesInTheShadows.eyesJarItem, jars);
+            MinecraftForgeClient.registerItemRenderer(EyesInTheShadows.emptyJar, jars);
+            if (Loader.isModLoaded("soundphysics")) SoundPhysicsCompat.muffleJars();
+        }
     }
 
     // postInit "Handle interaction with other mods, complete your setup based on this."

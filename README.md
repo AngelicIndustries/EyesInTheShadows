@@ -49,6 +49,9 @@ Original mod showcase by Mischief of Mice:<br>
 * Thaumcraft integration (aspects, possibility to warp the player upon jumpscare).
 * Eyes can be made entirely passive. Passive eyes can spawn in peaceful mode.
 * Configurable dynamic lights support. For technical reasons, it needs to be enabled on server and client.
+* Optional Nether eyes, burning soul-fire cyan.
+* Spawn biomes per dimension. With Biomic, its cave biomes count.
+* Optional eye jars: catch eyes while invisible, set the jar down or let them out again.
 
 ### Building
 `gradlew build`.
@@ -60,6 +63,7 @@ Original mod showcase by Mischief of Mice:<br>
 * [GT:NH buildscript](https://github.com/GTNewHorizons/ExampleMod1.7.10).
 * [Jabelar](http://jabelarminecraft.blogspot.com/), for his amazing tutorials and mob related code.
 * [TheGreyGhost](http://greyminecraftcoder.blogspot.com/p/list-of-topics.html), for superb tutorials as well.
+* [Twilight Forest](https://github.com/GTNewHorizons/twilightforest), whose firefly jar the eye jars are.
 
 <br>
 

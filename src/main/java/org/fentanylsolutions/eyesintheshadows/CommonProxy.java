@@ -1,12 +1,21 @@
 package org.fentanylsolutions.eyesintheshadows;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.oredict.ShapelessOreRecipe;
 
+import org.fentanylsolutions.eyesintheshadows.block.BlockEyeJar;
+import org.fentanylsolutions.eyesintheshadows.block.TileEntityEyeJar;
 import org.fentanylsolutions.eyesintheshadows.command.CommandTest;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 import org.fentanylsolutions.eyesintheshadows.event.CommonEventHandler;
+import org.fentanylsolutions.eyesintheshadows.item.ItemEmptyJar;
+import org.fentanylsolutions.eyesintheshadows.item.ItemEyeJar;
 import org.fentanylsolutions.eyesintheshadows.modcompat.ForbiddenMagicCompat;
+import org.fentanylsolutions.eyesintheshadows.modcompat.SupernovaCompat;
 import org.fentanylsolutions.eyesintheshadows.modcompat.ThaumcraftCompat;
 import org.fentanylsolutions.eyesintheshadows.packet.PacketHandler;
 import org.fentanylsolutions.eyesintheshadows.util.BiomeUtil;
@@ -29,6 +38,7 @@ import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import cpw.mods.fml.common.registry.EntityRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 public class CommonProxy {
 
@@ -57,11 +67,28 @@ public class CommonProxy {
             .registerModEntity(EntityEyes.class, "Eyes", ++modEntityID, EyesInTheShadows.instance, 80, 3, false);
         Util.registerSpawnEgg("Eyes", 0x000000, 0x7F0000);
 
+        if (Config.eyeJars) {
+            EyesInTheShadows.eyesJar = new BlockEyeJar();
+            GameRegistry.registerBlock(EyesInTheShadows.eyesJar, ItemEyeJar.class, "eyes_jar");
+            EyesInTheShadows.eyesJarItem = Item.getItemFromBlock(EyesInTheShadows.eyesJar);
+            GameRegistry.registerTileEntity(TileEntityEyeJar.class, EyesInTheShadows.MODID + ":eyes_jar");
+            EyesInTheShadows.emptyJar = new ItemEmptyJar();
+            GameRegistry.registerItem(EyesInTheShadows.emptyJar, "empty_jar");
+        }
+
         MinecraftForge.EVENT_BUS.register(new CommonEventHandler());
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes."
-    public void init(FMLInitializationEvent event) {}
+    public void init(FMLInitializationEvent event) {
+        if (!Config.eyeJars) return;
+        // A glass bottle with a wooden lid
+        GameRegistry.addRecipe(
+            new ShapelessOreRecipe(new ItemStack(EyesInTheShadows.emptyJar), Items.glass_bottle, "slabWood"));
+        if (Loader.isModLoaded("supernova")) {
+            SupernovaCompat.registerJarColors(EyesInTheShadows.eyesJar);
+        }
+    }
 
     // postInit "Handle interaction with other mods, complete your setup based on this."
     public void postInit(FMLPostInitializationEvent event) {

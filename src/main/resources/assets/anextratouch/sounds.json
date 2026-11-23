@@ -1,0 +1,89 @@
+{
+  "item.pickup.eyesintheshadows.empty_jar": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "anextratouch:item.category.bottle_empty",
+        "type": "event"
+      }
+    ]
+  },
+  "item.equip.eyesintheshadows.empty_jar": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "anextratouch:item.category.bottle_empty",
+        "type": "event"
+      }
+    ]
+  },
+  "item.equip.eyesintheshadows.eyes_jar": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "anextratouch:item.category.bottle_empty",
+        "type": "event"
+      }
+    ]
+  },
+  "item.pickup.eyesintheshadows.eyes_jar.0": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "anextratouch:item.category.bottle_empty",
+        "type": "event"
+      }
+    ]
+  },
+  "item.pickup.eyesintheshadows.eyes_jar.0.accent": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "eyesintheshadows:jar.laugh",
+        "type": "event",
+        "volume": 0.3,
+        "pitch": 1
+      }
+    ]
+  },
+  "item.pickup.eyesintheshadows.eyes_jar.1": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "anextratouch:item.category.bottle_empty",
+        "type": "event"
+      }
+    ]
+  },
+  "item.pickup.eyesintheshadows.eyes_jar.1.accent": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "eyesintheshadows:jar.glitched_short",
+        "type": "event",
+        "volume": 0.3,
+        "pitch": 1
+      }
+    ]
+  },
+  "item.pickup.eyesintheshadows.eyes_jar.2": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "anextratouch:item.category.bottle_empty",
+        "type": "event"
+      }
+    ]
+  },
+  "item.pickup.eyesintheshadows.eyes_jar.2.accent": {
+    "category": "player",
+    "sounds": [
+      {
+        "name": "eyesintheshadows:jar.laugh",
+        "type": "event",
+        "volume": 0.3,
+        "pitch": 1
+      }
+    ]
+  }
+}

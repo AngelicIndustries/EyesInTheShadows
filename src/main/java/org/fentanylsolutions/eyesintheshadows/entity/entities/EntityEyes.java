@@ -6,6 +6,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.passive.EntityOcelot;
@@ -29,6 +30,7 @@ import org.fentanylsolutions.eyesintheshadows.aitasks.FlyingCreepTowardPlayer;
 import org.fentanylsolutions.eyesintheshadows.aitasks.FlyingEyesWander;
 import org.fentanylsolutions.eyesintheshadows.aitasks.FlyingTargetTamedWolves;
 import org.fentanylsolutions.eyesintheshadows.entity.EyeSenses;
+import org.fentanylsolutions.eyesintheshadows.entity.EyeVariant;
 import org.fentanylsolutions.eyesintheshadows.entity.IModEntity;
 import org.fentanylsolutions.eyesintheshadows.mixins.early.minecraft.AccessorEntityLiving;
 import org.fentanylsolutions.eyesintheshadows.packet.PacketHandler;
@@ -49,6 +51,7 @@ public class EntityEyes extends EntityFlying implements IModEntity {
     private static final int DATA_BRIGHTNESS = 21;
     private static final int DATA_AGGRO = 22;
     private static final int DATA_TARGET_ID = 23;
+    private static final int DATA_VARIANT = 24;
 
     private boolean blinkingState;
     private float blinkProgress;
@@ -81,7 +84,28 @@ public class EntityEyes extends EntityFlying implements IModEntity {
         dataWatcher.addObject(DATA_BRIGHTNESS, 0.0F);
         dataWatcher.addObject(DATA_AGGRO, 0.0F);
         dataWatcher.addObject(DATA_TARGET_ID, -1);
+        dataWatcher.addObject(DATA_VARIANT, (byte) EyeVariant.NORMAL.ordinal());
         this.experienceValue = 5;
+    }
+
+    /** The variant of eyes born where they spawn; ones from a jar keep the jar's. */
+    @Override
+    public IEntityLivingData onSpawnWithEgg(IEntityLivingData data) {
+        setVariant(EyeVariant.of(worldObj));
+        return super.onSpawnWithEgg(data);
+    }
+
+    /** Glitched eyes: Limbo's wherever they are (let out of a jar), and any in the glitched dimensions. */
+    public boolean isGlitched() {
+        return getVariant() == EyeVariant.LIMBO || Util.isDimensionListed(worldObj, Config.glitchedDimensions);
+    }
+
+    public EyeVariant getVariant() {
+        return EyeVariant.byId(dataWatcher.getWatchableObjectByte(DATA_VARIANT));
+    }
+
+    public void setVariant(EyeVariant variant) {
+        dataWatcher.updateObject(DATA_VARIANT, (byte) variant.ordinal());
     }
 
     public boolean isPlayerLookingInMyGeneralDirection() {
@@ -184,14 +208,14 @@ public class EntityEyes extends EntityFlying implements IModEntity {
     @Override
     public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound) {
         super.writeEntityToNBT(par1NBTTagCompound);
-        // store additional custom variables for save, example: par1NBTTagCompound.setBoolean("Angry", isAngry());
+        par1NBTTagCompound.setByte("Variant", (byte) getVariant().ordinal());
     }
 
     /* (abstract) Protected helper method to read subclass entity data from NBT. */
     @Override
     public void readEntityFromNBT(NBTTagCompound par1NBTTagCompound) {
         super.readEntityFromNBT(par1NBTTagCompound);
-        // retrieve additional custom variables from save, example: setAngry(par1NBTTagCompound.getBoolean("Angry"));
+        setVariant(EyeVariant.byId(par1NBTTagCompound.getByte("Variant")));
     }
 
     protected void fall(float p_70069_1_) {}
@@ -500,8 +524,7 @@ public class EntityEyes extends EntityFlying implements IModEntity {
 
     @Override
     protected String getDeathSound() {
-        return Util.isDimensionListed(worldObj, Config.glitchedDimensions)
-            ? EyesInTheShadows.varInstanceCommon.glitchedDisappearSound
+        return isGlitched() ? EyesInTheShadows.varInstanceCommon.glitchedDisappearSound
             : EyesInTheShadows.varInstanceCommon.disappearSound;
     }
 
@@ -515,7 +538,7 @@ public class EntityEyes extends EntityFlying implements IModEntity {
             || Util.getEyeRenderingAlpha(this, Config.eyesCanAttackWhileLit) <= 0) {
             return null;
         }
-        if (!Util.isDimensionListed(worldObj, Config.glitchedDimensions)) {
+        if (!isGlitched()) {
             return EyesInTheShadows.varInstanceCommon.laughSound;
         }
         return rand.nextInt(3) == 0 ? EyesInTheShadows.varInstanceCommon.glitchedLaughSound
@@ -560,7 +583,7 @@ public class EntityEyes extends EntityFlying implements IModEntity {
     }
 
     public void jumpscare(EntityPlayerMP player) {
-        IMessage msg = new InitiateJumpscarePacket.SimpleMessage(player.posX, player.posY, player.posZ);
+        IMessage msg = new InitiateJumpscarePacket.SimpleMessage(player.posX, player.posY, player.posZ, isGlitched());
         PacketHandler.net.sendTo(msg, player);
     }
 
@@ -583,7 +606,7 @@ public class EntityEyes extends EntityFlying implements IModEntity {
      */
     @Override
     protected void onDeathUpdate() {
-        if (Util.isDimensionListed(worldObj, Config.glitchedDimensions)) {
+        if (isGlitched()) {
             if (++this.deathTime >= GLITCH_DEATH_TICKS) this.setDead();
             return;
         }

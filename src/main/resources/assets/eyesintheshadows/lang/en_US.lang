@@ -9,3 +9,10 @@ eyesintheshadows.eyes=Eyes
 
 eyesintheshadows.potion_selection_title=Please select a potion:
 eyesintheshadows.mob_selection_title=Please select a mob:
+
+item.eyesintheshadows.empty_jar.name=Empty Jar
+item.eyesintheshadows.empty_jar.tooltip=Catches eyes, if they don't see you coming
+tile.eyesintheshadows.eyes_jar.normal.name=Eyes in a Jar
+tile.eyesintheshadows.eyes_jar.limbo.name=Limbo Eyes in a Jar
+tile.eyesintheshadows.eyes_jar.nether.name=Nether Eyes in a Jar
+tile.eyesintheshadows.eyes_jar.tooltip=Sneak and use to let them out

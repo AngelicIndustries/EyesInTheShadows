@@ -15,6 +15,7 @@ import net.minecraft.world.SpawnerAnimals;
 import net.minecraft.world.World;
 
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
+import org.fentanylsolutions.eyesintheshadows.util.BiomeLookup;
 import org.fentanylsolutions.eyesintheshadows.util.TimeUtil;
 import org.fentanylsolutions.eyesintheshadows.util.Util;
 
@@ -146,8 +147,12 @@ public class EyesSpawningManager {
         return Config.dimensionListIsWhitelist ? found : !found;
     }
 
-    private static boolean isBiomeAllowed(World world, int x, int z) {
-        String biomeName = world.getBiomeGenForCoords(x, z).biomeName;
+    private static boolean isBiomeAllowed(World world, int x, int y, int z) {
+        String biomeName = BiomeLookup.at(world, x, y, z).biomeName;
+        String[] dimensionBiomes = Util.getDimensionList(world, Config.dimensionBiomeSpawnNames);
+        if (dimensionBiomes != null) {
+            return isNameAllowed(biomeName, dimensionBiomes, true);
+        }
         return isNameAllowed(biomeName, Config.biomeSpawnNames, Config.biomeListIsWhitelist);
     }
 
@@ -325,7 +330,8 @@ public class EyesSpawningManager {
             return false;
         }
 
-        if (!isBiomeAllowed(serverWorld, x, z)) {
+        // The block the eyes appear in, one above the ground
+        if (!isBiomeAllowed(serverWorld, x, y + 1, z)) {
             return false;
         }
 

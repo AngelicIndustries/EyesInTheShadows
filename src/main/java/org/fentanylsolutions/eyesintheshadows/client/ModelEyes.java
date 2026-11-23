@@ -1,6 +1,9 @@
 package org.fentanylsolutions.eyesintheshadows.client;
 
+import java.nio.FloatBuffer;
+import java.util.Map;
 import java.util.Random;
+import java.util.WeakHashMap;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
@@ -15,8 +18,10 @@ import net.minecraft.util.Vec3;
 
 import org.fentanylsolutions.eyesintheshadows.Config;
 import org.fentanylsolutions.eyesintheshadows.EyesInTheShadows;
+import org.fentanylsolutions.eyesintheshadows.entity.EyeVariant;
 import org.fentanylsolutions.eyesintheshadows.entity.entities.EntityEyes;
 import org.fentanylsolutions.eyesintheshadows.util.Util;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 public class ModelEyes extends ModelBase {
@@ -59,13 +64,23 @@ public class ModelEyes extends ModelBase {
         super.render(parEntity, parTime, parSwingSuppress, par4, parHeadAngleY, parHeadAngleX, par7);
     }
 
-    float time = 0;
+    /**
+     * Where each eye looks and at what age it last turned. Turning and every animation follow the eye's own age in
+     * ticks (ageInTicks), so eyes slowed or stopped in time (Uralte Zauber's time bubbles) slow down or freeze with it.
+     */
+    private final Map<EntityEyes, float[]> facings = new WeakHashMap<>();
+
+    /**
+     * How an eye turns to whoever it watches, per tick of its own time: a quarter of the way there, at most this many
+     * degrees. At normal speed it settles in a few ticks; slowed in time, it visibly swings round.
+     */
+    private static final float TURN_PER_TICK = 20.0F;
+    private static final float TURN_EASE = 0.25F;
 
     public void renderEyes(EntityEyes parEntity, float parTime, float parSwingSuppress, float par4, float parHeadAngleY,
         float parHeadAngleX, float par7) {
         // Dead eyes aren't drawn, except glitched ones going out
-        if (!parEntity.isEntityAlive() && (parEntity.isDead || parEntity.deathTime == 0
-            || !Util.isDimensionListed(parEntity.worldObj, Config.glitchedDimensions))) {
+        if (!parEntity.isEntityAlive() && (parEntity.isDead || parEntity.deathTime == 0 || !isGlitched(parEntity))) {
             return;
         }
 
@@ -139,6 +154,7 @@ public class ModelEyes extends ModelBase {
         if (Config.changeColorWithAggro) {
             aggroColorAdjust = 1 - MathHelper.clamp_float(parEntity.getAggroLevel(), 0, 1);
         }
+        float[] color = eyeColor(parEntity.getVariant(), aggroColorAdjust);
 
         // scale the whole thing for big or small entities
         GL11.glPushMatrix();
@@ -167,8 +183,27 @@ public class ModelEyes extends ModelBase {
         Vec3 eyesToPlayer = playerEyePos.subtract(eyeEyePos)
             .normalize();
 
-        float yaw = (float) (Math.atan2(eyesToPlayer.xCoord, eyesToPlayer.zCoord) * (180F / Math.PI));
-        float pitch = (float) (-Math.asin(eyesToPlayer.yCoord) * (180F / Math.PI));
+        float targetYaw = (float) (Math.atan2(eyesToPlayer.xCoord, eyesToPlayer.zCoord) * (180F / Math.PI));
+        float targetPitch = (float) (-Math.asin(eyesToPlayer.yCoord) * (180F / Math.PI));
+        float[] facing = facings.get(parEntity);
+        if (facing == null) {
+            facing = new float[] { targetYaw, targetPitch, par4 };
+            facings.put(parEntity, facing);
+        }
+        // Someone invisible isn't seen: the eyes keep looking where they were
+        if (watched.isInvisible()) {
+            targetYaw = facing[0];
+            targetPitch = facing[1];
+        }
+        float ticks = Math.max(0.0F, par4 - facing[2]);
+        float share = 1.0F - (float) Math.pow(1.0F - TURN_EASE, ticks);
+        float turn = ticks * TURN_PER_TICK;
+        facing[0] += MathHelper
+            .clamp_float(MathHelper.wrapAngleTo180_float(targetYaw - facing[0]) * share, -turn, turn);
+        facing[1] += MathHelper.clamp_float((targetPitch - facing[1]) * share, -turn, turn);
+        facing[2] = par4;
+        float yaw = facing[0];
+        float pitch = facing[1];
 
         GL11.glRotatef(yaw, 0.0F, -1.0F, 0.0F); // Rotate around Y (yaw)
         GL11.glRotatef(pitch, -1.0F, 0.0F, 0.0F); // Rotate around X (pitch)
@@ -177,9 +212,7 @@ public class ModelEyes extends ModelBase {
         GL11.glRotatef(180F, 1, 0, 0);
 
         if (parEntity.waveAmplitude > 0 && parEntity.waveSpeed > 0) {
-            time += 0.01f;
-            // time %= (float) (2 * Math.PI / parEntity.waveSpeed);
-            float offsetY_ = (float) Math.sin(time * parEntity.waveSpeed) * parEntity.waveAmplitude;
+            float offsetY_ = (float) Math.sin(par4 * 0.03F * parEntity.waveSpeed) * parEntity.waveAmplitude;
             GL11.glTranslatef(0.0F, offsetY_, 0.0F);
         }
 
@@ -193,7 +226,7 @@ public class ModelEyes extends ModelBase {
          * clamping and turns pitch black where lightmap coordinates are packed into 16 bits (Angelica)
          */
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
-        GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha);
+        GL11.glColor4f(color[0], color[1], color[2], mixAlpha);
 
         // Minecraft.getMinecraft().entityRenderer. // something with fog color
 
@@ -202,9 +235,10 @@ public class ModelEyes extends ModelBase {
         Minecraft.getMinecraft()
             .getTextureManager()
             .bindTexture(
-                Util.isDimensionListed(parEntity.worldObj, Config.whiteEyeDimensions)
-                    ? WhitenedTexture.of(EyesInTheShadows.varInstanceClient.eyesTexture)
-                    : EyesInTheShadows.varInstanceClient.eyesTexture);
+                parEntity.getVariant() == EyeVariant.NETHER || parEntity.getVariant() == EyeVariant.LIMBO
+                    || Util.isDimensionListed(parEntity.worldObj, Config.whiteEyeDimensions)
+                        ? WhitenedTexture.of(EyesInTheShadows.varInstanceClient.eyesTexture)
+                        : EyesInTheShadows.varInstanceClient.eyesTexture);
 
         final float w = 0.25f;
         final float h = w * 5 / 13f;
@@ -213,10 +247,10 @@ public class ModelEyes extends ModelBase {
         final float th = 5 / 32f;
         float hoff = getBlinkTextureOffset(parEntity, parTime, th);
 
-        Glitch glitch = Glitch.of(parEntity);
+        Glitch glitch = Glitch.of(parEntity, par4);
         float[] shifts = glitch != null ? glitch.shifts : null;
         float flicker = glitch != null ? glitch.brightness : 1.0F;
-        if (parEntity.deathTime > 0 && Util.isDimensionListed(parEntity.worldObj, Config.glitchedDimensions)) {
+        if (parEntity.deathTime > 0 && isGlitched(parEntity)) {
             // Going out as an old screen switches off: squashed into a bright line, torn, that shrinks away. Each eye
             // goes one way, flat and torn sideways or upright and torn up and down
             boolean upright = (parEntity.getEntityId() * 0x9E3779B9 >>> 16 & 1) == 1;
@@ -232,12 +266,12 @@ public class ModelEyes extends ModelBase {
                 stretch = t < 0.6F ? 1 + t : 1.6F * (1 - (t - 0.6F) / 0.4F);
                 GL11.glScalef(stretch, squash, 1.0F);
             }
-            Random random = new Random(parEntity.getEntityId() * 31L ^ Minecraft.getSystemTime() / 30);
+            Random random = new Random(parEntity.getEntityId() * 31L ^ (long) (par4 * 50 / 30));
             float[] tears = new float[6];
             for (int i = 0; i < tears.length; i++) {
                 tears[i] = (random.nextFloat() - 0.5F) * (upright ? 0.3F : 0.5F) * (1 - t);
             }
-            GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha);
+            GL11.glColor4f(color[0], color[1], color[2], mixAlpha);
             // A pass more than the eyes have, so it flashes as it goes
             for (int pass = 0; pass <= fullGlowPasses; ++pass) {
                 if (upright) drawEyesInColumns(tessellator, w, h, tw, th, hoff, tears);
@@ -245,12 +279,12 @@ public class ModelEyes extends ModelBase {
             }
         } else if (glitch == null || !glitch.hidden) {
             // Glitched eyes tear sideways in bands and flicker, dimming or going out, while they make a sound
-            GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha * flicker);
+            GL11.glColor4f(color[0], color[1], color[2], mixAlpha * flicker);
             for (int pass = 0; pass < fullGlowPasses; ++pass) {
                 drawEyes(tessellator, w, h, tw, th, hoff, shifts);
             }
             if (partialGlowPass > 0.0F) {
-                GL11.glColor4f(1.0F, aggroColorAdjust, aggroColorAdjust, mixAlpha * partialGlowPass * flicker);
+                GL11.glColor4f(color[0], color[1], color[2], mixAlpha * partialGlowPass * flicker);
                 drawEyes(tessellator, w, h, tw, th, hoff, shifts);
             }
         }
@@ -331,8 +365,7 @@ public class ModelEyes extends ModelBase {
     }
 
     /** The eyes, whole, or in horizontal bands each shifted sideways by its own amount. */
-    private static void drawEyes(Tessellator tessellator, float w, float h, float tw, float th, float hoff,
-        float[] shifts) {
+    static void drawEyes(Tessellator tessellator, float w, float h, float tw, float th, float hoff, float[] shifts) {
         int bands = shifts == null ? 1 : shifts.length;
         tessellator.startDrawingQuads();
         for (int i = 0; i < bands; i++) {
@@ -363,11 +396,116 @@ public class ModelEyes extends ModelBase {
         tessellator.draw();
     }
 
+    /** Eyes glitch in the glitched dimensions, and Limbo's wherever they are let out of a jar. */
+    static boolean isGlitched(EntityEyes eyes) {
+        return eyes.getVariant() == EyeVariant.LIMBO
+            || Util.isDimensionListed(eyes.worldObj, Config.glitchedDimensions);
+    }
+
+    /** How far down the texture the blink has the eyes, for a blink in progress. */
+    static float blinkOffset(boolean blinking, float blinkProgress, float th) {
+        if (!blinking) return 0;
+        int halfBlink = Math.max(1, Config.blinkDuration / 2);
+        if (blinkProgress < halfBlink) return MathHelper.floor_float(blinkProgress * 4f / halfBlink) * th;
+        return Math.max(0, 8 - MathHelper.floor_float(blinkProgress * 4f / halfBlink)) * th;
+    }
+
+    /**
+     * Eyes in a jar, at the origin and facing the camera: the glow, the blink and, for Limbo's while they make a sound,
+     * the glitch of free eyes. flipY is for the GUI, whose y axis points down. A jar that's set down glows (additive);
+     * on items, whose backgrounds can be light, the eyes are blended plainly so they still show.
+     */
+    public static void renderJarEyes(EyeVariant variant, float alpha, float ageInTicks, boolean blinking,
+        float blinkProgress, boolean sounding, long seed, float scale, boolean flipY, boolean additive) {
+        if (alpha <= 0) return;
+        float glowStrength = Math.max(0.0F, Config.eyeGlowStrength);
+        float effectiveGlowPasses = glowStrength * Math.max(1, Config.eyeGlowPasses);
+        int fullGlowPasses = MathHelper.floor_float(effectiveGlowPasses);
+        float partialGlowPass = effectiveGlowPasses - fullGlowPasses;
+        float[] color = eyeColor(variant, 1);
+        final float w = 0.25f;
+        final float h = w * 5 / 13f;
+        final float tw = 13 / 32f;
+        final float th = 5 / 32f;
+        float hoff = blinkOffset(blinking, blinkProgress, th);
+        Glitch glitch = variant == EyeVariant.LIMBO && sounding ? Glitch.seeded(seed, ageInTicks) : null;
+        if (glitch != null && glitch.hidden) return;
+        float flicker = glitch != null ? glitch.brightness : 1.0F;
+
+        GL11.glPushMatrix();
+        billboard(scale, flipY);
+        GL11.glPushAttrib(
+            GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_CURRENT_BIT);
+        float lastX = OpenGlHelper.lastBrightnessX;
+        float lastY = OpenGlHelper.lastBrightnessY;
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
+        GL11.glDisable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_CULL_FACE);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDepthMask(false);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, additive ? GL11.GL_ONE : GL11.GL_ONE_MINUS_SRC_ALPHA);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 240.0F);
+        Minecraft.getMinecraft()
+            .getTextureManager()
+            .bindTexture(
+                variant == EyeVariant.NORMAL ? EyesInTheShadows.varInstanceClient.eyesTexture
+                    : WhitenedTexture.of(EyesInTheShadows.varInstanceClient.eyesTexture));
+        Tessellator tessellator = Tessellator.instance;
+        float[] shifts = glitch != null ? glitch.shifts : null;
+        GL11.glColor4f(color[0], color[1], color[2], alpha * flicker);
+        for (int pass = 0; pass < fullGlowPasses; ++pass) drawEyes(tessellator, w, h, tw, th, hoff, shifts);
+        if (partialGlowPass > 0.0F) {
+            GL11.glColor4f(color[0], color[1], color[2], alpha * partialGlowPass * flicker);
+            drawEyes(tessellator, w, h, tw, th, hoff, shifts);
+        }
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lastX, lastY);
+        GL11.glPopAttrib();
+        GL11.glPopMatrix();
+    }
+
+    private static final FloatBuffer MATRIX = BufferUtils.createFloatBuffer(16);
+
+    /**
+     * Turns the current transform to face the camera, keeping its position and size: the rotation is replaced by a
+     * plain scale, so whatever the hand, the inventory or the world did, the eyes look straight out of the screen.
+     */
+    private static void billboard(float scale, boolean flipY) {
+        MATRIX.clear();
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, MATRIX);
+        float size = (float) Math
+            .sqrt(MATRIX.get(0) * MATRIX.get(0) + MATRIX.get(1) * MATRIX.get(1) + MATRIX.get(2) * MATRIX.get(2))
+            * scale;
+        for (int i : new int[] { 0, 1, 2, 4, 5, 6, 8, 9, 10 }) MATRIX.put(i, 0);
+        MATRIX.put(0, size);
+        MATRIX.put(5, flipY ? -size : size);
+        MATRIX.put(10, size);
+        MATRIX.rewind();
+        GL11.glLoadMatrix(MATRIX);
+    }
+
+    /** Soul-fire cyan, and the deep blue it burns to at full aggression. */
+    private static final float[] NETHER_CALM = { 0x4F / 255F, 0xE0 / 255F, 0xF0 / 255F };
+    private static final float[] NETHER_ANGRY = { 0x20 / 255F, 0x50 / 255F, 0xFF / 255F };
+
+    /**
+     * The eyes' tint, given how calm they are (1) or aggressive (0): yellow eyes and white ones turn red, Nether eyes
+     * go
+     * from cyan to a deep blue.
+     */
+    public static float[] eyeColor(EyeVariant variant, float aggroColorAdjust) {
+        if (variant != EyeVariant.NETHER) return new float[] { 1.0F, aggroColorAdjust, aggroColorAdjust };
+        float angry = 1 - aggroColorAdjust;
+        float[] color = new float[3];
+        for (int i = 0; i < 3; i++) color[i] = NETHER_CALM[i] + (NETHER_ANGRY[i] - NETHER_CALM[i]) * angry;
+        return color;
+    }
+
     /**
      * How a glitched eye (Config.glitchedDimensions) is off right now, or null while it isn't: it glitches for as long
      * as it makes a sound (SoundingEyes), changing every frame or two.
      */
-    private static final class Glitch {
+    static final class Glitch {
 
         /** How long each look of the glitch lasts, in milliseconds. */
         private static final long STEP = 30;
@@ -386,12 +524,18 @@ public class ModelEyes extends ModelBase {
             }
         }
 
-        static Glitch of(EntityEyes eyes) {
-            if (!Util.isDimensionListed(eyes.worldObj, Config.glitchedDimensions) || !SoundingEyes.isSounding(eyes)) {
+        /** The glitch of something glitching at an age in ticks; STEP is in milliseconds of its own time. */
+        static Glitch seeded(long seed, float ageInTicks) {
+            return new Glitch(new Random(seed * 0x9E3779B97F4A7C15L ^ ((long) (ageInTicks * 50) / STEP) * 31));
+        }
+
+        /** The glitch at the eye's age in ticks; STEP is in milliseconds of the eye's own time. */
+        static Glitch of(EntityEyes eyes, float ageInTicks) {
+            if (!isGlitched(eyes) || !SoundingEyes.isSounding(eyes)) {
                 return null;
             }
             long seed = eyes.getEntityId() * 0x9E3779B97F4A7C15L;
-            return new Glitch(new Random(seed ^ (Minecraft.getSystemTime() / STEP) * 31));
+            return new Glitch(new Random(seed ^ ((long) (ageInTicks * 50) / STEP) * 31));
         }
     }
 

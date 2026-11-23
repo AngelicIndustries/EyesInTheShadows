@@ -51,8 +51,11 @@ public final class PotionPools {
         List<Entry> entries = new ArrayList<>();
         for (Potion potion : pool) entries.add(new Entry(potion.getName(), -1, -1));
         World world = target.worldObj;
-        BiomeGenBase biome = world
-            .getBiomeGenForCoords(MathHelper.floor_double(target.posX), MathHelper.floor_double(target.posZ));
+        BiomeGenBase biome = BiomeLookup.at(
+            world,
+            MathHelper.floor_double(target.posX),
+            MathHelper.floor_double(target.boundingBox.minY),
+            MathHelper.floor_double(target.posZ));
         for (Rule rule : RULES) {
             if (!rule.biome && rule.event.equals(event) && Util.isDimension(world, rule.place)) rule.applyTo(entries);
         }

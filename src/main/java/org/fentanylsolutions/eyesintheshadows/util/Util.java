@@ -189,6 +189,34 @@ public class Util {
         return fallback;
     }
 
+    /** This dimension's comma-separated list in a list of dimension=a,b entries (by name or ID), or null. */
+    public static String[] getDimensionList(World world, String[] entries) {
+        for (String entry : entries) {
+            int split = entry.indexOf('=');
+            if (split <= 0 || !isDimension(world, entry.substring(0, split))) continue;
+            String[] values = entry.substring(split + 1)
+                .split(",");
+            for (int i = 0; i < values.length; i++) values[i] = values[i].trim();
+            return values;
+        }
+        return null;
+    }
+
+    /**
+     * How visible eyes in a jar at this block are, from 0 to 1: the same light rules as free eyes, by the saved light
+     * there without the jar's own glow (ownLight, the jar's light level when it's set down there).
+     */
+    public static float getJarEyesAlpha(World world, int x, int y, int z, int ownLight) {
+        if (world == null) return 1;
+        int block = world.getSavedLightValue(EnumSkyBlock.Block, x, y, z);
+        float artificialLight = (block > ownLight ? block : 0) / 15.0F;
+        float sky = world.getSavedLightValue(EnumSkyBlock.Sky, x, y, z) / 15.0F;
+        float sun = getSunBrightness(world);
+        float alpha = sky >= 1 ? 1 - sun - artificialLight * Config.eyeArtificialLightSensitivityOpenSky
+            : 1 - artificialLight * Config.eyeArtificialLightSensitivityCovered - sky * sun;
+        return Math.max(0, Math.min(1, alpha));
+    }
+
     /* Calculating how transparent the eyes should be, from 0 to 1 */
     public static float getEyeRenderingAlpha(Entity entity, boolean ignoreArtificialLight) {
         float mixAlpha;

@@ -56,8 +56,11 @@ public final class Restrictions {
         for (Rule rule : RULES) {
             if (!rule.blocked.contains(behavior)) continue;
             if (rule.place.startsWith(BIOME)) {
-                if (biome == null) biome = world
-                    .getBiomeGenForCoords(MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posZ));
+                if (biome == null) biome = BiomeLookup.at(
+                    world,
+                    MathHelper.floor_double(player.posX),
+                    MathHelper.floor_double(player.boundingBox.minY),
+                    MathHelper.floor_double(player.posZ));
                 if (biome != null && biome.biomeName.equals(
                     rule.place.substring(BIOME.length())
                         .trim()))
