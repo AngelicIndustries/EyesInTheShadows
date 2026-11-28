@@ -31,23 +31,35 @@ public class VarInstanceCommon {
     public String glitchedWhisperSound = EyesInTheShadows.MODID + ":" + "mob.eyes.glitched.whisper";
     public String glitchedJumpScareSound = EyesInTheShadows.MODID + ":" + "mob.eyes.glitched.jumpscare";
 
-    public HashMap<String, Potion> potionList;
-    public HashMap<String, Potion> potionCollisionList;
-    public HashMap<String, Potion> potionLookList;
-    public HashMap<String, DimensionUtil.SimpleDimensionObj> dimensionList;
-    public HashMap<String, BiomeGenBase> biomeList;
-    public ArrayList<Class> entitiesAttackingEyesList;
-    public ArrayList<Class> entitiesAttackedByEyesList;
-    public ArrayList<Class> entitiesFleeingEyesList;
-    public ArrayList<Class> entitiesThatEyesFleeList;
+    // Empty until postInit fills them (listsReady)
+    public HashMap<String, Potion> potionList = new HashMap<>();
+    public HashMap<String, Potion> potionCollisionList = new HashMap<>();
+    public HashMap<String, Potion> potionLookList = new HashMap<>();
+    public HashMap<String, DimensionUtil.SimpleDimensionObj> dimensionList = new HashMap<>();
+    public HashMap<String, BiomeGenBase> biomeList = new HashMap<>();
+    public ArrayList<Class> entitiesAttackingEyesList = new ArrayList<>();
+    public ArrayList<Class> entitiesAttackedByEyesList = new ArrayList<>();
+    public ArrayList<Class> entitiesFleeingEyesList = new ArrayList<>();
+    public ArrayList<Class> entitiesThatEyesFleeList = new ArrayList<>();
 
     public Hashtable<Integer, Class<? extends WorldProvider>> providers;
 
     public boolean witcheryLoaded;
 
+    private boolean listsReady;
+
     public VarInstanceCommon() {}
 
+    /**
+     * Whether every mod has registered its potions, dimensions and entities, so the lists can find them. Before
+     * postInit the config's names of mods loaded after this one aren't registered yet.
+     */
+    public boolean listsReady() {
+        return listsReady;
+    }
+
     public void postInitHook() {
+        listsReady = true;
         witcheryLoaded = Loader.isModLoaded("witchery");
         providers = AccessorDimensionManager.getProviders();
         buildPotionList();

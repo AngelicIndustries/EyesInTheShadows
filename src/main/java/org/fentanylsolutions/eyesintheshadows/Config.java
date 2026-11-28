@@ -1022,9 +1022,12 @@ public class Config {
             4);
         eyeArtificialLightSensitivityCovered = (float) eyeArtificialLightSensitivityCoveredProperty.getDouble();
 
-        EyesInTheShadows.varInstanceCommon.buildPotionList();
-        EyesInTheShadows.varInstanceCommon.buildDimensionList();
-        EyesInTheShadows.varInstanceCommon.buildMobLists();
+        // At startup this runs in preInit, before other mods register what the lists name; postInit builds them
+        if (EyesInTheShadows.varInstanceCommon.listsReady()) {
+            EyesInTheShadows.varInstanceCommon.buildPotionList();
+            EyesInTheShadows.varInstanceCommon.buildDimensionList();
+            EyesInTheShadows.varInstanceCommon.buildMobLists();
+        }
     }
 
     protected static String[] potionToStrArray(Potion[] potionArr) {
